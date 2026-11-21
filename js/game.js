@@ -374,15 +374,7 @@
     });
   }
   var prizesEl = document.getElementById('prizes');
-  var confettiEl = document.getElementById('confetti');
-  [[120, 60, -12], [1000, 40, 14], [520, 90, 4], [1120, 300, -8]].forEach(function (c, i) {
-    var img = document.createElement('img');
-    img.src = 'art/confetti.webp';
-    img.style.left = c[0] + 'px'; img.style.top = c[1] + 'px';
-    img.style.rotate = c[2] + 'deg';
-    img.style.animationDelay = (i * .5) + 's';
-    confettiEl.appendChild(img);
-  });
+  // (no floating confetti here: she kept trying to tap it)
   var picking = false;
   enter.prize = function () {
     picking = false;
