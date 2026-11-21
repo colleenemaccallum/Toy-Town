@@ -30,7 +30,7 @@
   }
 
   /* ---------- saved progress (the playroom) ---------- */
-  var SAVE_KEY = 'stuffie-town-v1';
+  var SAVE_KEY = 'stuffie-town-v2';   // v2: fresh start on 2026-11-21 (Colleen asked), old v1 toys are ignored
   var save = { toys: [] }; // [{id, x, y}]
   try { var s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.toys) save = s; } catch (e) {}
   function store() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
@@ -797,15 +797,5 @@
     try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
   }
 
-  // Grown-up peek: open the game with ?all-toys to fill the playroom with every toy
-  // and jump straight there (hold the start banner 5 seconds to clear it again).
-  if (/all-toys/.test(location.search)) {
-    var have = {};
-    save.toys.forEach(function (t) { have[t.id] = true; });
-    Object.keys(ROOM_SIZE).forEach(function (id) { if (!have[id]) save.toys.push({ id: id, x: null, y: null }); });
-    store();
-    go('playroom');
-  } else {
-    go('start');
-  }
+  go('start');
 })();
