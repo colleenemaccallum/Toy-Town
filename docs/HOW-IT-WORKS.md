@@ -28,3 +28,10 @@ Tidy-up rounds 2-4 (shapes, shape + color, counting), the other houses, Rive ani
 `audio/music/background.m4a` loops quietly and gets softer while a narrator line plays.
 Current song: "Music box, cute tune" from [4 Music Box Tracks](https://opengameart.org/content/4-music-box-tracks) (CC0, no credit needed).
 The purple music-note button on the start screen turns music on or off (remembered on the iPad).
+
+## Playroom furniture (ChatGPT felt pieces)
+Cubby bookcase, window seat, toy chest, tea table with two chairs. Toys dropped near a flat top settle onto it,
+shrink to fit inside cubbies, and drop to the floor if let go on the wall. Positions are set in `FURNITURE` in js/game.js.
+
+## Art rule
+Every picture comes from ChatGPT. Nothing is drawn in code.
