@@ -100,8 +100,8 @@ button img { width: 100%; height: 100%; object-fit: contain; }
 /* ---------- 4. prize ---------- */
 #prize-bear { left: 60px; bottom: 50px; height: 540px; animation: jump .9s ease-in-out infinite; }
 .cushion { position: absolute; width: 250px; height: 330px; }
-.cushion > img.pad { position: absolute; bottom: 0; width: 250px; }
-.cushion > img.gift { position: absolute; left: 50%; bottom: 92px; height: 220px; max-width: 240px;
+.cushion > img.pad { position: absolute; bottom: 0; width: 250px; z-index: 1; }
+.cushion > img.gift { position: absolute; left: 50%; bottom: 112px; height: 220px; max-width: 240px; z-index: 2;
   transform: translateX(-50%); object-fit: contain; filter: drop-shadow(0 8px 6px rgba(0,0,0,.22));
   animation: float 2.2s ease-in-out infinite; }
 .cushion:nth-child(2) > img.gift { animation-delay: .4s; }

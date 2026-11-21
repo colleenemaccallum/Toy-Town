@@ -316,8 +316,9 @@
       c.className = 'cushion';
       c.style.left = (520 + i * 280) + 'px';
       c.style.top = '500px';
-      c.innerHTML = '<img class="gift" src="art/' + p.id + '.webp" alt="" style="height:' + p.h + 'px">' +
-                    '<img class="pad" src="art/prize-cushion.webp" alt="">';
+      // cushion first, toy second, so the toy sits ON the cushion
+      c.innerHTML = '<img class="pad" src="art/prize-cushion.webp" alt="">' +
+                    '<img class="gift" src="art/' + p.id + '.webp" alt="" style="height:' + p.h + 'px">';
       c.addEventListener('click', function () {
         if (picking) return;
         picking = true;
