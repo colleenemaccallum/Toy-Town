@@ -213,6 +213,14 @@
     later(function () { say('19-band-ask-' + n); }, 400);
   }
 
+  // tap a mouse that is already on the stage: it plays its instrument again
+  layer.addEventListener('pointerdown', function (e) {
+    var m = e.target.closest && e.target.closest('.jf-player');
+    if (!m || m.classList.contains('waiting')) return;
+    var img = m.querySelector('img'), hit = /band-(\w+)\./.exec(img.getAttribute('src'));
+    if (!hit) return;
+    ST.unlockAudio(); audio(); playerSound(hit[1]);
+  });
   function dragPlayer(m, onDrop) {
     var dragging = false, off = { x: 0, y: 0 }, pid = null;
     m.addEventListener('pointerdown', function (e) {
