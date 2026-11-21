@@ -356,11 +356,23 @@
 
   /* ===== 4. CHEER + PICK 1 OF 3 ===== */
   // One girl-leaning, one boy-leaning, one in-between. No labels.
-  var PRIZES = [
-    { id: 'baby-doll',   h: 230 },
-    { id: 'race-car',    h: 150 },
-    { id: 'paint-easel', h: 220 }
+  // Prize toys in three groups. Each time she picks from one of each group,
+  // toys she doesn't have yet first. No labels on screen.
+  var PRIZE_GROUPS = [
+    [ { id: 'baby-doll', h: 230 }, { id: 'doll-house', h: 210 }, { id: 'dress-up', h: 200 }, { id: 'tea-set', h: 170 } ],
+    [ { id: 'race-car', h: 150 }, { id: 'fire-truck', h: 170 } ],
+    [ { id: 'paint-easel', h: 220 }, { id: 'blocks', h: 200 }, { id: 'magnet-tiles', h: 200 },
+      { id: 'play-doh', h: 175 }, { id: 'bunny', h: 200 } ]
   ];
+  function pickPrizes() {
+    var owned = {};
+    save.toys.forEach(function (t) { owned[t.id] = true; });
+    return PRIZE_GROUPS.map(function (g) {
+      var fresh = g.filter(function (p) { return !owned[p.id]; });
+      var pool = fresh.length ? fresh : g;
+      return pool[Math.floor(Math.random() * pool.length)];
+    });
+  }
   var prizesEl = document.getElementById('prizes');
   var confettiEl = document.getElementById('confetti');
   [[120, 60, -12], [1000, 40, 14], [520, 90, 4], [1120, 300, -8]].forEach(function (c, i) {
@@ -375,7 +387,7 @@
   enter.prize = function () {
     picking = false;
     prizesEl.innerHTML = '';
-    shuffle(PRIZES.slice()).forEach(function (p, i) {
+    shuffle(pickPrizes()).forEach(function (p, i) {
       var c = document.createElement('div');
       c.className = 'cushion';
       c.style.left = (520 + i * 280) + 'px';
@@ -401,7 +413,11 @@
   };
 
   /* ===== 5. PLAYROOM ===== */
-  var ROOM_SIZE = { 'baby-doll': [90, 143], 'race-car': [143, 98], 'paint-easel': [135, 158] };
+  var ROOM_SIZE = {
+    'baby-doll': [90, 143], 'race-car': [143, 98], 'paint-easel': [135, 158],
+    'doll-house': [142, 150], 'dress-up': [130, 125], 'tea-set': [140, 123], 'fire-truck': [150, 133],
+    'blocks': [116, 120], 'magnet-tiles': [117, 115], 'play-doh': [134, 117], 'bunny': [120, 115]
+  };
   var roomEl = document.getElementById('room-toys');
   var furnEl = document.getElementById('furniture');
 
@@ -413,7 +429,7 @@
     { x0: 1015, x1: 1325, y: 300 }
   ];
   var FLOOR_TOP = 690;      // toy bottoms below this line are "on the floor"
-  var surfaces = SHELVES.slice();
+  var surfaces = SHELVES.slice();  // rebuilt by rebuildSurfaces()
 
   // Furniture pieces (ChatGPT felt art). left/bottom/width = where it stands;
   // tops = flat places on it as fractions of the picture: [from x, to x, at y, max toy height (fraction)].
@@ -423,20 +439,113 @@
     { id: 'toy-chest',      left: 1010, bottom: 695, width: 310, tops: [[.08, .92, .18]] },
     { id: 'tea-table',      left: 463,  bottom: 965, width: 430, tops: [[.3, .7, .28], [.02, .24, .52], [.76, .98, .52]] }
   ];
+  // Furniture you can tap: the toy chest lid opens and closes (toys can go
+  // inside), and each bench drawer slides open and shut.
+  var chest = FURNITURE[2], seat = FURNITURE[1];
+  chest.open = false;
+  chest.openArt = { src: 'art/toy-chest-open.webp', left: 1018, width: 295 };
+  seat.drawers = { left: false, right: false };
+  ['toy-chest-open', 'window-seat-left', 'window-seat-right', 'window-seat-both'].forEach(function (n) { new Image().src = 'art/' + n + '.webp'; });
+
+  function rebuildSurfaces() {
+    surfaces = SHELVES.slice();
+    FURNITURE.forEach(function (f) { (f.surfs || []).forEach(function (s) { surfaces.push(s); }); });
+  }
+  function surfsFor(f, h) {
+    return f.tops.map(function (t) {
+      return { x0: f.left + t[0] * f.width, x1: f.left + t[1] * f.width, y: f.bottom - h + t[2] * h,
+               maxH: t[3] ? t[3] * h : 0 };
+    });
+  }
+
+  function onTap(el, fn) {
+    var sx = 0, sy = 0;
+    el.addEventListener('pointerdown', function (e) { sx = e.clientX; sy = e.clientY; });
+    el.addEventListener('pointerup', function (e) {
+      if (Math.abs(e.clientX - sx) < 14 && Math.abs(e.clientY - sy) < 14) { unlockAudio(); fn(e); }
+    });
+  }
+
   FURNITURE.forEach(function (f) {
     var img = new Image();
     img.onload = function () {
+      if (f.h) return;               // already set up
       var h = f.width * img.naturalHeight / img.naturalWidth;
+      f.h = h; f.img = img;
       img.className = 'furniture';
       img.style.left = f.left + 'px'; img.style.top = (f.bottom - h) + 'px'; img.style.width = f.width + 'px';
       furnEl.appendChild(img);
-      f.tops.forEach(function (t) {
-        surfaces.push({ x0: f.left + t[0] * f.width, x1: f.left + t[1] * f.width, y: f.bottom - h + t[2] * h,
-                        maxH: t[3] ? t[3] * h : 0 });
-      });
+      f.surfs = surfsFor(f, h);
+      rebuildSurfaces();
+      if (f === chest) setupChest();
+      if (f === seat) setupSeat();
     };
     img.src = 'art/' + f.id + '.webp';
   });
+
+  function setupSeat() {
+    seat.img.classList.add('tappable');
+    onTap(seat.img, function (e) {
+      var p = toStage(e), side = p.x < seat.left + seat.width / 2 ? 'left' : 'right';
+      seat.drawers[side] = !seat.drawers[side];
+      var d = seat.drawers, n = d.left && d.right ? '-both' : d.left ? '-left' : d.right ? '-right' : '';
+      seat.img.src = 'art/window-seat' + n + '.webp';
+      seat.drawers[side] ? sfx.pop() : sfx.tap();
+    });
+  }
+
+  // The open chest: the open picture, plus the same picture's front part laid
+  // over the toys so toys put inside look like they're really in the chest.
+  var chestFront = null;
+  function setupChest() {
+    chest.img.classList.add('tappable');
+    var oa = chest.openArt;
+    var open = new Image();
+    open.onload = function () {
+      var h = oa.width * open.naturalHeight / open.naturalWidth;
+      oa.h = h; oa.top = chest.bottom - h;
+      oa.inside = { x0: oa.left + .18 * oa.width, x1: oa.left + .82 * oa.width, y: oa.top + .58 * h, maxH: 0, inside: true };
+    };
+    open.src = oa.src;
+    chestFront = document.createElement('img');
+    chestFront.className = 'furniture chest-front tappable';
+    chestFront.src = oa.src;
+    chestFront.style.left = oa.left + 'px'; chestFront.style.width = oa.width + 'px';
+    chestFront.style.display = 'none';
+    document.getElementById('playroom').appendChild(chestFront);
+    onTap(chest.img, toggleChest);
+    onTap(chestFront, toggleChest);
+  }
+  function toggleChest() {
+    var oa = chest.openArt;
+    if (!oa.h) return;
+    chest.open = !chest.open;
+    if (chest.open) {
+      chest.img.src = oa.src;
+      chest.img.style.left = oa.left + 'px'; chest.img.style.width = oa.width + 'px'; chest.img.style.top = oa.top + 'px';
+      chestFront.style.top = oa.top + 'px'; chestFront.style.display = 'block';
+      chest.surfs = [oa.inside];
+      sfx.pop();
+    } else {
+      chest.img.src = 'art/' + chest.id + '.webp';
+      chest.img.style.left = chest.left + 'px'; chest.img.style.width = chest.width + 'px'; chest.img.style.top = (chest.bottom - chest.h) + 'px';
+      chestFront.style.display = 'none';
+      chest.surfs = surfsFor(chest, chest.h);
+      sfx.tap();
+    }
+    rebuildSurfaces();
+    // toys sitting on the lid hop off when it opens; toys inside hide when it closes
+    roomEl.querySelectorAll('.room-toy').forEach(function (el) {
+      var t = el._toy;
+      if (t.inside) { el.style.display = chest.open ? '' : 'none'; return; }
+      if (chest.open && t.onLid) {
+        t.x = chest.left - toySize(t)[0] - 10; t.y = 0;   // set down beside the chest
+        t.y = FLOOR_TOP + 70 - toySize(t)[1]; t.onLid = false;
+        el.classList.add('settling'); placeEl(el, t);
+      }
+    });
+    store();
+  }
 
   // size of a toy at its current spot (smaller inside cubbies)
   function toySize(t) {
@@ -461,6 +570,8 @@
       if (d < 90 && d < bestD) { best = s; bestD = d; }
     });
     t.s = (best && best.maxH && full[1] > best.maxH) ? best.maxH / full[1] : 1;
+    t.inside = !!(best && best.inside);
+    t.onLid = !!(best && !chest.open && chest.surfs && chest.surfs.indexOf(best) >= 0);
     if (best) bottom = best.y + 4;
     else if (bottom < FLOOR_TOP) bottom = FLOOR_TOP + 70;
     bottom = Math.min(bottom, H - 10);
@@ -471,14 +582,28 @@
 
   // where new toys first land (toy center x, bottom y), tried in order:
   // window seat, toy chest, bookcase top, tea table, wall shelves, floor
-  var NEW_SPOTS = [[683, 576], [1165, 527], [218, 437], [683, 765], [195, 300], [1170, 300], [430, 900], [940, 900]];
+  var NEW_SPOTS = [[683, 576], [1165, 527], [218, 437], [683, 765], [195, 300], [1170, 300],
+    [560, 576], [806, 576], [120, 300], [1250, 300], [519, 832], [837, 832],
+    [106, 548], [218, 548], [330, 548], [106, 665], [218, 665], [330, 665],
+    [420, 920], [950, 920], [300, 990], [1060, 990]];
+  function freeSpot() {
+    for (var i = 0; i < NEW_SPOTS.length; i++) {
+      var sp = NEW_SPOTS[i], taken = save.toys.some(function (o) {
+        if (o.x === null) return false;
+        var z = toySize(o);
+        return Math.abs(o.x + z[0] / 2 - sp[0]) < 70 && Math.abs(o.y + z[1] - sp[1]) < 40 && !(o.inside && !chest.open);
+      });
+      if (!taken) return sp;
+    }
+    return [683, 900];
+  }
 
   enter.playroom = function () {
     roomEl.innerHTML = '';
     var anyNew = false;
     save.toys.forEach(function (t, i) {
       if (t.x === null) {
-        var s = NEW_SPOTS[i % NEW_SPOTS.length], sz0 = toySize(t);
+        var s = freeSpot(), sz0 = toySize(t);
         t.x = s[0] - sz0[0] / 2; t.y = s[1] - sz0[1];
         settle(t);
       }
@@ -486,6 +611,8 @@
       d.className = 'room-toy' + (t.isNew ? ' new' : '');
       placeEl(d, t);
       d.innerHTML = '<img src="art/' + t.id + '.webp" alt="">';
+      d._toy = t;
+      if (t.inside && !chest.open) d.style.display = 'none';
       if (t.isNew) {
         anyNew = true;
         var sz = toySize(t);
