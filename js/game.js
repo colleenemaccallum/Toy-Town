@@ -82,7 +82,7 @@
     musicOn = !musicOn;
     try { localStorage.setItem('stuffie-music', musicOn ? 'on' : 'off'); } catch (e) {}
     if (musicOn) startMusic(); else music.pause();
-    musicBtn.classList.toggle('off', !musicOn);
+    showMusicBtn();
   }
 
   function say(name) {
@@ -143,7 +143,12 @@
 
   /* ===== 1. START ===== */
   var musicBtn = document.getElementById('music-btn');
-  musicBtn.classList.toggle('off', !musicOn);
+  var musicImg = document.getElementById('music-img');
+  function showMusicBtn() { musicImg.src = 'art/music-' + (musicOn ? 'on' : 'off') + '.webp'; }
+  // only show the button once its art exists
+  var probe = new Image();
+  probe.onload = function () { musicBtn.hidden = false; showMusicBtn(); };
+  probe.src = 'art/music-on.webp';
   musicBtn.addEventListener('click', function () { unlockAudio(); toggleMusic(); });
   document.getElementById('play-btn').addEventListener('click', function () {
     unlockAudio(); sfx.pop(); go('street');

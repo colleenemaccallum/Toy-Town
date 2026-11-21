@@ -23,7 +23,8 @@
     <div class="banner"><img src="art/title-banner.webp" alt=""><h1>Stuffie Town</h1></div>
     <img class="char bob" id="start-bear" src="art/baby-bear-wave.webp" alt="Baby Bear">
     <img class="char bob delay" id="start-maddie" src="art/maddie-wave.webp" alt="Maddie">
-    <button class="corner music" id="music-btn" aria-label="Music on or off"><span>&#9835;</span></button>
+    <!-- music on/off button: waits for its ChatGPT art (art/music-on.webp, art/music-off.webp) -->
+    <button class="corner music" id="music-btn" aria-label="Music on or off" hidden><img id="music-img" src="" alt=""></button>
     <button class="play pulse" id="play-btn" aria-label="Play"><img src="art/play-button.webp" alt=""></button>
   </section>
 
@@ -70,7 +71,7 @@
 
 <div id="turn">
   <div class="turn-card">
-    <div class="turn-ipad"></div>
+    <img class="turn-bear" src="art/baby-bear-wave.webp" alt="">
     <p>Turn me sideways!</p>
   </div>
 </div>
