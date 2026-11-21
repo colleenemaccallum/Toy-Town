@@ -102,11 +102,25 @@
   }
   // the mouse holding that instrument moves in time with its sound
   // (drum: bang, trumpet: toot back, guitar: strum rock, tambourine: shake, maracas: shake-shake)
+  // [ms after the sound starts, pose]; pose 1 is the standing picture
+  var POSES = {
+    drum:       [[0, 3], [150, 2], [300, 3], [420, 1]],
+    trumpet:    [[0, 2], [200, 3], [560, 1]],
+    guitar:     [[0, 2], [90, 3], [900, 1]],
+    tambourine: [[0, 2], [120, 3], [240, 2], [480, 1]],
+    maracas:    [[0, 2], [140, 3], [320, 2], [460, 3], [620, 1]]
+  };
+  PLAYERS.forEach(function (id) { [2, 3].forEach(function (k) { new Image().src = 'art/band-' + id + '-' + k + '.webp'; }); });
+  function bandOf(img) { var m = /band-([a-z]+)/.exec(img.getAttribute('src') || ''); return m && m[1]; }
   function playerMoves(id, delay) {
     later(function () {
       layer.querySelectorAll('.jf-player:not(.waiting) img').forEach(function (img) {
-        if (img.getAttribute('src').indexOf('band-' + id + '.') < 0) return;
+        if (bandOf(img) !== id) return;
         img.classList.remove('play-' + id); void img.offsetWidth; img.classList.add('play-' + id);
+        // flip through the ChatGPT playing poses in time with the sound
+        (POSES[id] || []).forEach(function (f) {
+          later(function () { img.src = 'art/band-' + id + (f[1] > 1 ? '-' + f[1] : '') + '.webp'; }, f[0]);
+        });
         img.addEventListener('animationend', function done() { img.classList.remove('play-' + id); img.removeEventListener('animationend', done); });
       });
     }, (delay || 0) * 1000 + 10);
@@ -217,9 +231,9 @@
   layer.addEventListener('pointerdown', function (e) {
     var m = e.target.closest && e.target.closest('.jf-player');
     if (!m || m.classList.contains('waiting')) return;
-    var img = m.querySelector('img'), hit = /band-(\w+)\./.exec(img.getAttribute('src'));
-    if (!hit) return;
-    ST.unlockAudio(); audio(); playerSound(hit[1]);
+    var id = bandOf(m.querySelector('img'));
+    if (!id) return;
+    ST.unlockAudio(); audio(); playerSound(id);
   });
   function dragPlayer(m, onDrop) {
     var dragging = false, off = { x: 0, y: 0 }, pid = null;
@@ -254,6 +268,7 @@
   function drumRound(n) {
     pose('drum');
     busy = true;
+    el('img', 'jf-banner').src = 'art/star-banner.webp'; // ChatGPT felt banner so the stars stand out
     var row = el('div', 'jf-row');
     var stars = [];
     for (var i = 0; i < n; i++) { var s = document.createElement('img'); s.src = 'art/gold-star.webp'; s.className = 'dim'; row.appendChild(s); stars.push(s); }

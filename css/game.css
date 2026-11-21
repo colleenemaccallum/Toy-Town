@@ -111,7 +111,8 @@ button img { width: 100%; height: 100%; object-fit: contain; }
 .jf-player { width: 150px; height: 200px; z-index: 8; touch-action: none; cursor: grab;
   filter: drop-shadow(0 8px 6px rgba(70,40,20,.25));
   transition: left .35s cubic-bezier(.3,1.4,.6,1), top .35s cubic-bezier(.3,1.4,.6,1); }
-.jf-player img { width: 100%; height: 100%; object-fit: contain; }
+.jf-player { display: flex; justify-content: center; }
+.jf-player img { height: 100%; width: auto; max-width: none; flex: none; }
 .jf-player.waiting { width: 120px; height: 160px; animation: bob 2.6s ease-in-out infinite; }
 .jf-player:not(.waiting) { cursor: pointer; }
 .jf-player.dragging { transition: none; transform: scale(1.15); z-index: 40; }
@@ -125,9 +126,10 @@ button img { width: 100%; height: 100%; object-fit: contain; }
 .jf-player img.play-maracas { animation: play-maracas .62s linear; }
 .jf-player.hop-in { animation: arrive .5s cubic-bezier(.3,1.5,.5,1) backwards; }
 .jf-player.counted { animation: jump .5s ease; }
+.jf-banner { left: 313px; top: 53px; width: 740px; height: auto; z-index: 4; filter: drop-shadow(0 8px 6px rgba(70,40,20,.25)); }
 .jf-row { left: 0; right: 0; top: 70px; display: flex; justify-content: center; gap: 22px; z-index: 5; }
 .jf-row img { width: 110px; height: 110px; transition: transform .2s, filter .2s, opacity .2s; }
-.jf-row img.dim { opacity: .55; filter: grayscale(.8); transform: scale(.85); }
+.jf-row img.dim { opacity: .7; filter: grayscale(.8); transform: scale(.85); }
 .jf-row img.lit { opacity: 1; transform: scale(1.1); }
 .jf-bigdrum { left: 470px; top: 470px; width: 420px; height: 390px; z-index: 5; filter: drop-shadow(0 12px 10px rgba(70,40,20,.3)); }
 .jf-bigdrum img { object-fit: contain; }
