@@ -235,7 +235,7 @@
     { id: 'playroom',  x: .462, w: .170, open: 'playroom' },
     { id: 'bart',      x: .654, w: .092 },
     { id: 'terry',     x: .762, w: .088 },
-    { id: 'jeffrey',   x: .861, w: .113 }
+    { id: 'jeffrey',   x: .861, w: .113, open: 'jeffrey' } // js/jeffrey.js
   ];
   var housesEl = document.getElementById('houses');
   HOUSES.forEach(function (h) {
@@ -987,6 +987,12 @@
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
   }
+
+  /* ---------- shared with the other game files (js/jeffrey.js) ---------- */
+  window.StuffieTown = {
+    W: W, H: H, go: go, enter: enter, say: say, sfx: sfx, sparks: sparks,
+    toStage: toStage, unlockAudio: unlockAudio, shuffle: shuffle
+  };
 
   go('start');
 })();
