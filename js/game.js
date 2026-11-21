@@ -379,20 +379,68 @@
 
   /* ===== 5. PLAYROOM ===== */
   var ROOM_SIZE = { 'baby-doll': [120, 190], 'race-car': [190, 130], 'paint-easel': [180, 210] };
-  // where new toys land (top-left corner), tried in order
-  var ROOM_SPOTS = [
-    [600, 640], [170, 180], [1080, 180], [800, 700], [450, 720], [330, 180], [930, 180], [700, 820]
-  ];
   var roomEl = document.getElementById('room-toys');
+  var furnEl = document.getElementById('furniture');
 
-  function freeSpot(i) { return ROOM_SPOTS[i % ROOM_SPOTS.length]; }
+  // Places a toy can sit. y = the line the toy's bottom rests on.
+  // The two shelves are part of the playroom picture.
+  var SHELVES = [
+    { x0: 40,   x1: 350,  y: 300 },
+    { x0: 1015, x1: 1325, y: 300 }
+  ];
+  var FLOOR_TOP = 640;      // toy bottoms below this line are "on the floor"
+  var surfaces = SHELVES.slice();
+
+  // Furniture pieces. Each shows up only once its picture is in art/.
+  // left/bottom/width are where it stands in the room; tops are the flat
+  // places on it, as fractions of the picture: [from x, to x, at y].
+  var FURNITURE = [
+    { id: 'cubby-bookcase', left: 20,   bottom: 700, width: 360, tops: [[.06, .94, .10], [.08, .92, .50], [.08, .92, .90]] },
+    { id: 'window-seat',    left: 470,  bottom: 650, width: 430, tops: [[.08, .92, .30]] },
+    { id: 'toy-chest',      left: 1010, bottom: 690, width: 300, tops: [[.08, .92, .18]] },
+    { id: 'tea-table',      left: 560,  bottom: 905, width: 300, tops: [[.22, .78, .30]] }
+  ];
+  FURNITURE.forEach(function (f) {
+    var img = new Image();
+    img.onload = function () {
+      var h = f.width * img.naturalHeight / img.naturalWidth;
+      img.className = 'furniture';
+      img.style.left = f.left + 'px'; img.style.top = (f.bottom - h) + 'px'; img.style.width = f.width + 'px';
+      furnEl.appendChild(img);
+      f.tops.forEach(function (t) {
+        surfaces.push({ x0: f.left + t[0] * f.width, x1: f.left + t[1] * f.width, y: f.bottom - h + t[2] * h });
+      });
+    };
+    img.src = 'art/' + f.id + '.webp';
+  });
+
+  // Find where a toy should settle: on a shelf or furniture top close to it,
+  // on the floor if it's low enough, otherwise it drops down to the floor.
+  function settle(t, sz) {
+    var cx = t.x + sz[0] / 2, bottom = t.y + sz[1], best = null, bestD = 1e9;
+    surfaces.forEach(function (s) {
+      if (cx < s.x0 || cx > s.x1) return;
+      var d = Math.abs(bottom - s.y);
+      if (d < 110 && d < bestD) { best = s; bestD = d; }
+    });
+    if (best) bottom = best.y + 4;
+    else if (bottom < FLOOR_TOP) bottom = FLOOR_TOP + 110;
+    bottom = Math.min(bottom, H - 10);
+    t.y = bottom - sz[1];
+  }
+
+  // where new toys first land (toy center x, bottom y), tried in order
+  var NEW_SPOTS = [[683, 820], [195, 300], [1170, 300], [470, 880], [900, 880], [120, 300], [1250, 300]];
 
   enter.playroom = function () {
     roomEl.innerHTML = '';
     var anyNew = false;
     save.toys.forEach(function (t, i) {
       var sz = ROOM_SIZE[t.id] || [150, 150];
-      if (t.x === null) { var s = freeSpot(i); t.x = s[0]; t.y = s[1] - (sz[1] - 130); }
+      if (t.x === null) {
+        var s = NEW_SPOTS[i % NEW_SPOTS.length];
+        t.x = s[0] - sz[0] / 2; t.y = s[1] - sz[1];
+      }
       var d = document.createElement('div');
       d.className = 'room-toy' + (t.isNew ? ' new' : '');
       d.style.width = sz[0] + 'px'; d.style.height = sz[1] + 'px';
@@ -418,6 +466,7 @@
       try { el.setPointerCapture(pid); } catch (err) {}
       var p = toStage(e);
       off.x = p.x - t.x; off.y = p.y - t.y;
+      el.classList.remove('settling');
       el.classList.add('dragging'); sfx.tap();
     });
     el.addEventListener('pointermove', function (e) {
@@ -429,7 +478,12 @@
     });
     function up(e) {
       if (!dragging || e.pointerId !== pid) return;
-      dragging = false; el.classList.remove('dragging'); store();
+      dragging = false; el.classList.remove('dragging');
+      settle(t, sz);
+      el.classList.add('settling');
+      el.style.top = t.y + 'px';
+      sfx.pop();
+      store();
     }
     el.addEventListener('pointerup', up);
     el.addEventListener('pointercancel', up);
