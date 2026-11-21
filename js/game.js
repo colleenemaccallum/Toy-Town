@@ -46,6 +46,7 @@
       try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
     }
     if (actx && actx.state === 'suspended') actx.resume();
+    loadToySounds();
     if (actx && musicOn && music.paused && !document.hidden) startMusic();
   }
   /* Background music: one quiet looping song (audio/music/background.m4a).
@@ -110,8 +111,78 @@
     pop: function () { tone(523, 0, .12, 'triangle'); tone(784, .08, .2, 'triangle'); },
     boing: function () { tone(220, 0, .18, 'sine', .2); tone(196, .12, .22, 'sine', .15); },
     tada: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * .12, .35, 'triangle', .22); }); },
-    sparkle: function () { [1319, 1568, 1760, 2093].forEach(function (f, i) { tone(f, i * .06, .2, 'sine', .1); }); }
+    sparkle: function () { [659, 784, 880, 1047].forEach(function (f, i) { tone(f, i * .07, .25, 'sine', .09); }); }
   };
+
+  /* ---------- each toy has its own soft sound (plays when she picks it up) ----------
+     A few are short recordings (audio/toys, all CC0 from Freesound: see audio/toys/CREDITS.txt).
+     The rest are made right here: low, soft notes, nothing sharp or loud. */
+  function glide(f0, f1, start, dur, type, vol) {
+    if (!actx) return;
+    var t = actx.currentTime + start, o = actx.createOscillator(), g = actx.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + dur + 0.05);
+  }
+  var noiseBuf = null;
+  function hush(start, dur, f0, f1, vol, q) {     // soft filtered noise: swishes, whooshes, knocks
+    if (!actx) return;
+    if (!noiseBuf) {
+      noiseBuf = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
+      var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    var t = actx.currentTime + start, src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+    src.buffer = noiseBuf; f.type = 'bandpass'; f.Q.value = q || 1;
+    f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.35);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(actx.destination); src.start(t); src.stop(t + dur + 0.05);
+  }
+  function knock(start, f) { tone(f, start, .09, 'sine', .22); hush(start, .05, 500, 400, .12, 2); }
+  var TOY_FILES = ['baby-doll', 'play-doh', 'puppy', 'race-car'], toyBufs = {}, toyGain = null;
+  function loadToySounds() {
+    if (!actx || toyGain) return;
+    toyGain = actx.createGain(); toyGain.gain.value = 0.8; toyGain.connect(actx.destination);
+    TOY_FILES.forEach(function (n) {
+      fetch('audio/toys/' + n + '.mp3').then(function (r) { return r.arrayBuffer(); }).then(function (b) {
+        actx.decodeAudioData(b, function (buf) { toyBufs[n] = buf; }, function () {});
+      }).catch(function () {});
+    });
+  }
+  var TOY_SFX = {
+    'xylophone':      function () { [262, 330, 392].forEach(function (f, i) { tone(f, i * .14, .45, 'sine', .2); tone(f * 4, i * .14, .12, 'sine', .02); }); },
+    'toy-piano':      function () { [196, 262, 330].forEach(function (f, i) { tone(f, i * .16, .6, 'triangle', .16); }); },
+    'music-box':      function () { [392, 523, 659, 523, 392].forEach(function (f, i) { tone(f, i * .2, .7, 'sine', .09); }); },
+    'stacking-rings': function () { [280, 320, 360].forEach(function (f, i) { knock(i * .12, f); }); },
+    'blocks':         function () { knock(0, 220); knock(.16, 250); },
+    'magnet-tiles':   function () { hush(0, .05, 900, 800, .14, 3); hush(.12, .05, 900, 800, .14, 3); },
+    'tea-set':        function () { tone(784, 0, .35, 'sine', .07); tone(784, .2, .35, 'sine', .06); },
+    'fire-truck':     function () { tone(523, 0, .5, 'sine', .12); tone(523, .3, .5, 'sine', .1); },
+    'dump-truck':     function () { glide(70, 95, 0, .6, 'triangle', .2); tone(392, .45, .14, 'sine', .07); tone(392, .65, .14, 'sine', .07); },
+    'rocket':         function () { hush(0, .9, 250, 1200, .16, 1.2); },
+    'doll-stroller':  function () { for (var i = 0; i < 4; i++) hush(i * .1, .06, 1200, 1100, .06, 4); },
+    'doll-house':     function () { knock(0, 160); knock(.18, 160); },
+    'dress-up':       function () { [523, 659, 784].forEach(function (f, i) { tone(f, i * .09, .35, 'sine', .07); }); },
+    'paint-easel':    function () { hush(0, .3, 700, 900, .12, 1); hush(.28, .3, 900, 700, .1, 1); },
+    'bunny':          function () { glide(260, 420, 0, .22, 'sine', .14); glide(300, 480, .22, .22, 'sine', .11); }
+  };
+  var lastToySound = 0;
+  function toySound(id) {
+    if (!actx) return false;
+    var now = actx.currentTime;
+    if (now - lastToySound < .35) return true;     // no pile-ups from quick taps
+    lastToySound = now;
+    if (toyBufs[id]) {
+      var src = actx.createBufferSource(); src.buffer = toyBufs[id]; src.connect(toyGain); src.start();
+      return true;
+    }
+    if (TOY_SFX[id]) { TOY_SFX[id](); return true; }
+    return false;
+  }
 
   function sparks(x, y, n) {
     for (var i = 0; i < (n || 7); i++) {
@@ -393,6 +464,7 @@
         if (picking) return;
         picking = true;
         unlockAudio(); sfx.sparkle();
+        setTimeout(function () { toySound(p.id); }, 450);
         c.classList.add('picked');
         prizesEl.querySelectorAll('.cushion').forEach(function (o) { if (o !== c) o.classList.add('other'); });
         sparks(520 + i * 280 + 125, 600, 10);
@@ -671,7 +743,7 @@
       placeEl(el, t);
       el._bx = el._nx = t.x; el._by = el._ny = t.y;
       moveBy(el, 1.1);
-      sfx.tap();
+      if (!toySound(t.id)) sfx.tap();
     });
     var lastE = null, edgeTimer = null;
     function follow() {
@@ -725,5 +797,15 @@
     try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
   }
 
-  go('start');
+  // Grown-up peek: open the game with ?all-toys to fill the playroom with every toy
+  // and jump straight there (hold the start banner 5 seconds to clear it again).
+  if (/all-toys/.test(location.search)) {
+    var have = {};
+    save.toys.forEach(function (t) { have[t.id] = true; });
+    Object.keys(ROOM_SIZE).forEach(function (id) { if (!have[id]) save.toys.push({ id: id, x: null, y: null }); });
+    store();
+    go('playroom');
+  } else {
+    go('start');
+  }
 })();
