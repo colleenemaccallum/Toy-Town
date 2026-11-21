@@ -271,6 +271,20 @@
     return null;
   }
 
+  /* Smooth dragging: while a finger moves a toy, slide it with a GPU transform
+     instead of left/top. Moving left/top under a drop shadow left smeared
+     trails on iPad Safari. */
+  function moveBy(el, sc) {
+    el.style.transform = 'translate3d(' + (el._nx - el._bx) + 'px,' + (el._ny - el._by) + 'px,0) scale(' + sc + ')';
+  }
+  function commitMove(el) {
+    // still "dragging" (no transition) while we swap transform for left/top
+    el.style.left = el._nx + 'px'; el.style.top = el._ny + 'px';
+    el.style.transform = '';
+    void el.offsetWidth;
+    el.classList.remove('dragging');
+  }
+
   function makeDraggable(el, toy) {
     var dragging = false, off = { x: 0, y: 0 }, pid = null;
     el.addEventListener('pointerdown', function (e) {
@@ -279,21 +293,25 @@
       dragging = true; pid = e.pointerId;
       try { el.setPointerCapture(pid); } catch (err) {}
       var p = toStage(e);
-      off.x = p.x - parseFloat(el.style.left); off.y = p.y - parseFloat(el.style.top);
+      el._bx = parseFloat(el.style.left); el._by = parseFloat(el.style.top);
+      el._nx = el._bx; el._ny = el._by;
+      off.x = p.x - el._bx; off.y = p.y - el._by;
       el.classList.add('dragging'); el.classList.remove('hint');
+      moveBy(el, 1.18);
       sfx.tap(); resetIdle();
     });
     el.addEventListener('pointermove', function (e) {
       if (!dragging || e.pointerId !== pid) return;
       var p = toStage(e);
-      el.style.left = Math.max(-30, Math.min(W - 100, p.x - off.x)) + 'px';
-      el.style.top = Math.max(-30, Math.min(H - 100, p.y - off.y)) + 'px';
+      el._nx = Math.max(-30, Math.min(W - 100, p.x - off.x));
+      el._ny = Math.max(-30, Math.min(H - 100, p.y - off.y));
+      moveBy(el, 1.18);
     });
     function drop(e) {
       if (!dragging || e.pointerId !== pid) return;
       dragging = false;
-      el.classList.remove('dragging');
-      var p = { x: parseFloat(el.style.left) + 65, y: parseFloat(el.style.top) + 65 };
+      commitMove(el);
+      var p = { x: el._nx + 65, y: el._ny + 65 };
       var b = boxUnder(p);
       if (b && b.color === toy.color) putAway(el, toy, b);
       else {
@@ -403,7 +421,7 @@
     { id: 'cubby-bookcase', left: 18,   bottom: 700, width: 400, tops: [[.06, .94, .10], [.08, .92, .485, .26], [.08, .92, .88, .26]] },
     { id: 'window-seat',    left: 448,  bottom: 655, width: 470, tops: [[.2, .8, .45]] },
     { id: 'toy-chest',      left: 1010, bottom: 695, width: 310, tops: [[.08, .92, .18]] },
-    { id: 'tea-table',      left: 508,  bottom: 975, width: 350, tops: [[.3, .7, .28], [.02, .24, .52], [.76, .98, .52]] }
+    { id: 'tea-table',      left: 463,  bottom: 965, width: 430, tops: [[.3, .7, .28], [.02, .24, .52], [.76, .98, .52]] }
   ];
   FURNITURE.forEach(function (f) {
     var img = new Image();
@@ -453,7 +471,7 @@
 
   // where new toys first land (toy center x, bottom y), tried in order:
   // window seat, toy chest, bookcase top, tea table, wall shelves, floor
-  var NEW_SPOTS = [[683, 576], [1165, 527], [218, 437], [683, 825], [195, 300], [1170, 300], [430, 900], [940, 900]];
+  var NEW_SPOTS = [[683, 576], [1165, 527], [218, 437], [683, 765], [195, 300], [1170, 300], [430, 900], [940, 900]];
 
   enter.playroom = function () {
     roomEl.innerHTML = '';
@@ -494,19 +512,24 @@
       t.x = p.x - rx * sz[0]; t.y = p.y - ry * sz[1];
       off.x = p.x - t.x; off.y = p.y - t.y;
       el.classList.remove('settling');
+      el.classList.add('dragging');
       placeEl(el, t);
-      el.classList.add('dragging'); sfx.tap();
+      el._bx = el._nx = t.x; el._by = el._ny = t.y;
+      moveBy(el, 1.1);
+      sfx.tap();
     });
     el.addEventListener('pointermove', function (e) {
       if (!dragging || e.pointerId !== pid) return;
       var p = toStage(e), sz = toySize(t);
       t.x = Math.max(0, Math.min(W - sz[0], p.x - off.x));
       t.y = Math.max(110, Math.min(H - sz[1], p.y - off.y));
-      el.style.left = t.x + 'px'; el.style.top = t.y + 'px';
+      el._nx = t.x; el._ny = t.y;
+      moveBy(el, 1.1);
     });
     function up(e) {
       if (!dragging || e.pointerId !== pid) return;
-      dragging = false; el.classList.remove('dragging');
+      dragging = false;
+      commitMove(el);
       settle(t);
       el.classList.add('settling');
       placeEl(el, t);
