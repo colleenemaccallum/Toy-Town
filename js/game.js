@@ -46,7 +46,45 @@
       try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
     }
     if (actx && actx.state === 'suspended') actx.resume();
+    if (actx && musicOn && music.paused && !document.hidden) startMusic();
   }
+  /* Background music: one quiet looping song (audio/music/background.m4a).
+     Routed through Web Audio so the volume works on iPad (Safari ignores audio.volume). */
+  var MUSIC_VOL = 0.32, MUSIC_DUCK = 0.1;
+  var music = new Audio('audio/music/background.m4a');
+  music.loop = true; music.preload = 'auto';
+  var musicGain = null, musicOn = true;
+  try { musicOn = localStorage.getItem('stuffie-music') !== 'off'; } catch (e) {}
+  function startMusic() {
+    if (!actx || !musicOn) return;
+    if (!musicGain) {
+      try {
+        var src = actx.createMediaElementSource(music);
+        musicGain = actx.createGain();
+        musicGain.gain.value = MUSIC_VOL;
+        src.connect(musicGain); musicGain.connect(actx.destination);
+      } catch (e) { return; }
+    }
+    var p = music.play(); if (p && p.catch) p.catch(function () {});
+  }
+  function musicLevel(v) {
+    if (musicGain) musicGain.gain.setTargetAtTime(v, actx.currentTime, 0.25);
+  }
+  // music gets softer while Colleen's voice is talking
+  narrator.addEventListener('playing', function () { musicLevel(MUSIC_DUCK); });
+  narrator.addEventListener('ended', function () { musicLevel(MUSIC_VOL); });
+  narrator.addEventListener('pause', function () { musicLevel(MUSIC_VOL); });
+  narrator.addEventListener('error', function () { musicLevel(MUSIC_VOL); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) music.pause(); else if (musicOn && musicGain) startMusic();
+  });
+  function toggleMusic() {
+    musicOn = !musicOn;
+    try { localStorage.setItem('stuffie-music', musicOn ? 'on' : 'off'); } catch (e) {}
+    if (musicOn) startMusic(); else music.pause();
+    musicBtn.classList.toggle('off', !musicOn);
+  }
+
   function say(name) {
     try {
       narrator.pause();
@@ -104,6 +142,9 @@
   });
 
   /* ===== 1. START ===== */
+  var musicBtn = document.getElementById('music-btn');
+  musicBtn.classList.toggle('off', !musicOn);
+  musicBtn.addEventListener('click', function () { unlockAudio(); toggleMusic(); });
   document.getElementById('play-btn').addEventListener('click', function () {
     unlockAudio(); sfx.pop(); go('street');
   });

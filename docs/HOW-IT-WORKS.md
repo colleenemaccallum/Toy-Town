@@ -23,3 +23,8 @@ The house and toy-box home buttons go back to the street.
 
 ## Not yet
 Tidy-up rounds 2-4 (shapes, shape + color, counting), the other houses, Rive animation, more prize toys.
+
+## Music
+`audio/music/background.m4a` loops quietly and gets softer while a narrator line plays.
+Current song: "Music box, cute tune" from [4 Music Box Tracks](https://opengameart.org/content/4-music-box-tracks) (CC0, no credit needed).
+The purple music-note button on the start screen turns music on or off (remembered on the iPad).

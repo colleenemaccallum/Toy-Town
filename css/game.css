@@ -44,6 +44,12 @@ button img { width: 100%; height: 100%; object-fit: contain; }
 .corner:active { transform: scale(.9); }
 
 /* ---------- 1. start ---------- */
+.corner.music { left: auto; right: 22px; width: 84px; height: 84px; border-radius: 50%;
+  background: #b79ce0; border: 5px dashed #fff6e5; color: #fff; font-size: 46px; line-height: 1; }
+.corner.music span { display: block; transform: translateY(-2px); }
+.corner.music.off { background: #c9bfd2; }
+.corner.music.off::after { content: ""; position: absolute; left: 14px; right: 14px; top: 50%; height: 7px;
+  margin-top: -3px; background: #fff; border-radius: 4px; transform: rotate(-40deg); }
 .banner { position: absolute; left: 50%; top: 70px; width: 940px; transform: translateX(-50%);
   filter: drop-shadow(0 10px 8px rgba(0,0,0,.18)); animation: sway 4s ease-in-out infinite; }
 .banner img { width: 100%; }
