@@ -112,7 +112,7 @@
   /* ===== 2. STREET ===== */
   // Where each house sits on the wide street picture (fractions of its width / height).
   var HOUSES = [
-    { id: 'baby-bear', x: .033, w: .106, open: 'tidy' },
+    { id: 'baby-bear', x: .033, w: .106, open: 'baby-bear' }, // colors and shapes take turns (js/shapes.js)
     { id: 'jeffrey',   x: .165, w: .106 },
     { id: 'shelley',   x: .293, w: .143 },
     { id: 'playroom',  x: .462, w: .170, open: 'playroom' },
@@ -120,6 +120,8 @@
     { id: 'terry',     x: .762, w: .088 },
     { id: 'annie',     x: .869, w: .097 }
   ];
+  // a house can pick its screen each visit (filled in by other files, e.g. js/shapes.js)
+  var ROUTES = { 'baby-bear': function () { return 'tidy'; } };
   var housesEl = document.getElementById('houses');
   HOUSES.forEach(function (h) {
     var d = document.createElement('div');
@@ -135,7 +137,7 @@
     d.addEventListener('pointerup', function (e) {
       if (Math.abs(e.clientX - sx) > 14 || Math.abs(e.clientY - sy) > 14) return;
       unlockAudio();
-      if (h.open) { sfx.pop(); go(h.open); }
+      if (h.open) { sfx.pop(); go(ROUTES[h.open] ? ROUTES[h.open]() : h.open); }
       else {
         sfx.boing(); say('03-not-home');
         d.classList.remove('shake'); void d.offsetWidth; d.classList.add('shake');
@@ -410,6 +412,13 @@
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
   }
+
+  /* ---------- shared with the other game files (js/shapes.js) ---------- */
+  window.StuffieTown = {
+    W: W, H: H, go: go, enter: enter, routes: ROUTES, say: say, sfx: sfx, sparks: sparks,
+    toStage: toStage, unlockAudio: unlockAudio, shuffle: shuffle,
+    current: function () { return current; }
+  };
 
   go('start');
 })();

@@ -8,6 +8,10 @@ and keeps working offline after the first visit (`sw.js`; bump its VERSION after
 1. **Start**: Maddie and Baby Bear wave; tap the play button.
 2. **Street**: swipe sideways (3 screens wide). Gold stars bounce over the houses that are open: Baby Bear's and the Playroom. Other houses wiggle ("not home yet").
 3. **Baby Bear tidy-up, round 1 (colors)**: drag 8 toys into the red, blue, yellow and green boxes. A wrong box sends the toy gently back. No timer, no losing.
+   **Baby Bear tidy-up, round 2 (shapes), waiting on ChatGPT art**: once on, Baby Bear's house takes turns. Every other visit opens his shape shelf:
+   drag 8 felt shapes (2 circles, 2 squares, 2 triangles, 2 stars, in mixed colors so only the shape matters)
+   onto the shelf spot with the same sewn shape. A wrong spot sends the shape back and the right spot glows.
+   The narrator names each shape as it goes in. The game code is `js/shapes.js`.
 4. **Cheer + pick a toy**: three prizes (doll, race car, paint easel), shuffled, no labels. Tap one.
 5. **Playroom**: Maddie and Sandy; earned toys appear and can be dragged anywhere. Kept on the iPad between visits.
 
@@ -16,10 +20,11 @@ The house and toy-box home buttons go back to the street.
 **Grown-up reset**: hold the "Stuffie Town" banner on the start screen for 5 seconds to empty the playroom.
 
 ## Files
+- Shape shelf art comes from ChatGPT (never drawn in code): `art/shape-shelf.webp` and `art/shape-<shape>-<color>.webp`. Until it's added, the shape round stays off (its script tag in index.html is commented out).
 - `art/` webp copies of the felt pieces (made from the project's art-pieces folder, trimmed and shrunk).
 - `audio/narrator/` Colleen's recordings go here; see NARRATOR-LINES.md.
 - `fonts/` Fredoka (SIL Open Font License, see fonts/OFL.txt).
 - The game is laid out on a 1366 x 1024 stage (iPad Pro 12.9" landscape) and scales to fit other screens. Portrait shows "Turn me sideways!".
 
 ## Not yet
-Tidy-up rounds 2-4 (shapes, shape + color, counting), the other houses, Rive animation, more prize toys.
+Tidy-up rounds 3-4 (shape + color, counting), the other houses, Rive animation, more prize toys.

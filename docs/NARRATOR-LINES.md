@@ -21,3 +21,12 @@ or swap in the matching line from the story bible script.
 | 09-great-pick.m4a | A prize is picked | "Great pick! Let's take it to the playroom." |
 | 10-playroom-new.m4a | Playroom, after a new toy | "Look, your new toy is here! You can move it anywhere you like." |
 | 11-playroom.m4a | Playroom, just visiting | "Welcome to your playroom!" |
+| 12-shapes-intro.m4a | Baby Bear's shape shelf opens | "Baby Bear's shelf is empty! Put each toy in the spot that's the same shape." |
+| 13-circle.m4a | A circle goes on the shelf | "Circle!" |
+| 13-square.m4a | A square goes on the shelf | "Square!" |
+| 13-triangle.m4a | A triangle goes on the shelf | "Triangle!" |
+| 13-star.m4a | A star goes on the shelf | "Star!" |
+| 14-shape-try-again.m4a | A shape is dropped on the wrong spot | "Oops, let's try another spot. Look, Baby Bear is showing you!" |
+| 15-shape-hint.m4a | No moves for 12 seconds | "Look at the shape. Which spot matches?" |
+
+The shape round ends with the same "You did it!" line (07-all-done.m4a).
