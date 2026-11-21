@@ -97,8 +97,19 @@
     }
   };
   function playerSound(id, delay) {
-    if (!audio()) return;
-    SOUND[id](ac.currentTime + (delay || 0) + .01);
+    if (audio()) SOUND[id](ac.currentTime + (delay || 0) + .01);
+    playerMoves(id, delay);
+  }
+  // the mouse holding that instrument moves in time with its sound
+  // (drum: bang, trumpet: toot back, guitar: strum rock, tambourine: shake, maracas: shake-shake)
+  function playerMoves(id, delay) {
+    later(function () {
+      layer.querySelectorAll('.jf-player:not(.waiting) img').forEach(function (img) {
+        if (img.getAttribute('src').indexOf('band-' + id + '.') < 0) return;
+        img.classList.remove('play-' + id); void img.offsetWidth; img.classList.add('play-' + id);
+        img.addEventListener('animationend', function done() { img.classList.remove('play-' + id); img.removeEventListener('animationend', done); });
+      });
+    }, (delay || 0) * 1000 + 10);
   }
   function drum() { playerSound('drum'); }
   function bandPlays(ids) { // everyone on the stage plays together, twice round
