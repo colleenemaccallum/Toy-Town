@@ -359,10 +359,12 @@
   // Prize toys in three groups. Each time she picks from one of each group,
   // toys she doesn't have yet first. No labels on screen.
   var PRIZE_GROUPS = [
-    [ { id: 'baby-doll', h: 230 }, { id: 'doll-house', h: 210 }, { id: 'dress-up', h: 200 }, { id: 'tea-set', h: 170 } ],
-    [ { id: 'race-car', h: 150 }, { id: 'fire-truck', h: 170 } ],
+    [ { id: 'baby-doll', h: 230 }, { id: 'doll-house', h: 210 }, { id: 'dress-up', h: 200 }, { id: 'tea-set', h: 170 },
+      { id: 'doll-stroller', h: 220 }, { id: 'music-box', h: 230 } ],
+    [ { id: 'race-car', h: 150 }, { id: 'fire-truck', h: 170 }, { id: 'dump-truck', h: 160 }, { id: 'rocket', h: 230 } ],
     [ { id: 'paint-easel', h: 220 }, { id: 'blocks', h: 200 }, { id: 'magnet-tiles', h: 200 },
-      { id: 'play-doh', h: 175 }, { id: 'bunny', h: 200 } ]
+      { id: 'play-doh', h: 175 }, { id: 'bunny', h: 200 }, { id: 'xylophone', h: 140 },
+      { id: 'stacking-rings', h: 210 }, { id: 'toy-piano', h: 180 }, { id: 'puppy', h: 180 } ]
   ];
   function pickPrizes() {
     var owned = {};
@@ -408,17 +410,26 @@
   var ROOM_SIZE = {
     'baby-doll': [90, 143], 'race-car': [143, 98], 'paint-easel': [135, 158],
     'doll-house': [142, 150], 'dress-up': [130, 125], 'tea-set': [140, 123], 'fire-truck': [150, 133],
-    'blocks': [116, 120], 'magnet-tiles': [117, 115], 'play-doh': [134, 117], 'bunny': [120, 115]
+    'blocks': [116, 120], 'magnet-tiles': [117, 115], 'play-doh': [134, 117], 'bunny': [120, 115],
+    'doll-stroller': [126, 140], 'music-box': [92, 150], 'dump-truck': [133, 100], 'rocket': [109, 150],
+    'xylophone': [137, 85], 'stacking-rings': [113, 130], 'toy-piano': [134, 115], 'puppy': [147, 115]
   };
   var roomEl = document.getElementById('room-toys');
   var furnEl = document.getElementById('furniture');
+  var roomScroller = document.getElementById('room-scroller');
+  var roomWide = document.getElementById('room-wide');
+  var ROOM_W = 2925;      // the playroom is about two screens wide
+  // screen point -> playroom point (adds how far the room is slid over)
+  function toRoom(e) { var p = toStage(e); p.x += roomScroller.scrollLeft; return p; }
 
   // Places a toy can sit. y = the line the toy's bottom rests on.
   // maxH (optional) = the tallest a toy can be there; bigger toys shrink to fit (cubbies).
   // The two wall shelves are part of the playroom picture.
   var SHELVES = [
     { x0: 40,   x1: 350,  y: 300 },
-    { x0: 1015, x1: 1325, y: 300 }
+    { x0: 1015, x1: 1325, y: 300 },
+    { x0: 1490, x1: 1858, y: 358 },
+    { x0: 2410, x1: 2785, y: 358 }
   ];
   var FLOOR_TOP = 690;      // toy bottoms below this line are "on the floor"
   var surfaces = SHELVES.slice();  // rebuilt by rebuildSurfaces()
@@ -429,7 +440,14 @@
     { id: 'cubby-bookcase', left: 18,   bottom: 700, width: 400, tops: [[.06, .94, .10], [.08, .92, .485, .26], [.08, .92, .88, .26]] },
     { id: 'window-seat',    left: 448,  bottom: 655, width: 470, tops: [[.2, .8, .45]] },
     { id: 'toy-chest',      left: 1010, bottom: 695, width: 310, tops: [[.08, .92, .18]] },
-    { id: 'tea-table',      left: 463,  bottom: 965, width: 430, tops: [[.3, .7, .28], [.02, .24, .52], [.76, .98, .52]] }
+    { id: 'tea-table',      left: 463,  bottom: 965, width: 430, tops: [[.3, .7, .28], [.02, .24, .52], [.76, .98, .52]] },
+    // the second half of the room
+    { id: 'dress-up-rack',  left: 1385, bottom: 700, width: 280, tops: [] },
+    { id: 'beanbag',        left: 1935, bottom: 765, width: 260, tops: [[.2, .8, .56]] },
+    { id: 'plant',          left: 2290, bottom: 690, width: 130, tops: [] },
+    { id: 'play-kitchen',   left: 2470, bottom: 715, width: 260, tops: [[.06, .94, .33]] },
+    { id: 'rocking-horse',  left: 1690, bottom: 905, width: 260, tops: [[.38, .72, .40]] },
+    { id: 'floor-pouf',     left: 2255, bottom: 905, width: 190, tops: [[.2, .8, .12]] }
   ];
   // Furniture you can tap: the toy chest lid opens and closes (toys can go
   // inside), and each bench drawer slides open and shut.
@@ -478,7 +496,7 @@
   function setupSeat() {
     seat.img.classList.add('tappable');
     onTap(seat.img, function (e) {
-      var p = toStage(e), side = p.x < seat.left + seat.width / 2 ? 'left' : 'right';
+      var p = toRoom(e), side = p.x < seat.left + seat.width / 2 ? 'left' : 'right';
       seat.drawers[side] = !seat.drawers[side];
       var d = seat.drawers, n = d.left && d.right ? '-both' : d.left ? '-left' : d.right ? '-right' : '';
       seat.img.src = 'art/window-seat' + n + '.webp';
@@ -504,7 +522,7 @@
     chestFront.src = oa.src;
     chestFront.style.left = oa.left + 'px'; chestFront.style.width = oa.width + 'px';
     chestFront.style.display = 'none';
-    document.getElementById('playroom').appendChild(chestFront);
+    roomWide.appendChild(chestFront);
     onTap(chest.img, toggleChest);
     onTap(chestFront, toggleChest);
   }
@@ -568,7 +586,7 @@
     else if (bottom < FLOOR_TOP) bottom = FLOOR_TOP + 70;
     bottom = Math.min(bottom, H - 10);
     var sz = toySize(t);
-    t.x = Math.max(0, Math.min(W - sz[0], cx - sz[0] / 2));
+    t.x = Math.max(0, Math.min(ROOM_W - sz[0], cx - sz[0] / 2));
     t.y = bottom - sz[1];
   }
 
@@ -577,7 +595,10 @@
   var NEW_SPOTS = [[683, 576], [1165, 527], [218, 437], [683, 765], [195, 300], [1170, 300],
     [560, 576], [806, 576], [120, 300], [1250, 300], [519, 832], [837, 832],
     [106, 548], [218, 548], [330, 548], [106, 665], [218, 665], [330, 665],
-    [420, 920], [950, 920], [300, 990], [1060, 990]];
+    [420, 920], [950, 920], [300, 990], [1060, 990],
+    // second half of the room
+    [2600, 415], [2065, 640], [1570, 358], [1770, 358], [2500, 358], [2700, 358], [2350, 795],
+    [1820, 790], [1600, 950], [2100, 950], [2600, 950], [1900, 1000], [2400, 1000]];
   function freeSpot() {
     for (var i = 0; i < NEW_SPOTS.length; i++) {
       var sp = NEW_SPOTS[i], taken = save.toys.some(function (o) {
@@ -590,9 +611,11 @@
     return [683, 900];
   }
 
+  var roomPeeked = false;
   enter.playroom = function () {
     roomEl.innerHTML = '';
-    var anyNew = false;
+    var anyNew = false, showX = 0;
+    roomScroller.scrollLeft = 0;
     save.toys.forEach(function (t, i) {
       if (t.x === null) {
         var s = freeSpot(), sz0 = toySize(t);
@@ -607,16 +630,29 @@
       if (t.inside && !chest.open) d.style.display = 'none';
       if (t.isNew) {
         anyNew = true;
+        // slide over so the new toy is on screen before it sparkles
+        showX = Math.max(0, Math.min(ROOM_W - W, t.x - W / 2));
+        roomScroller.scrollLeft = showX;
         var sz = toySize(t);
-        setTimeout(function () { sparks(t.x + sz[0] / 2, t.y + sz[1] / 2, 9); sfx.sparkle(); }, 350);
+        setTimeout(function () { sparks(t.x - roomScroller.scrollLeft + sz[0] / 2, t.y + sz[1] / 2, 9); sfx.sparkle(); }, 350);
         t.isNew = false;
       }
       roomDrag(d, t);
       roomEl.appendChild(d);
     });
     store();
+    // the first time, the room slides a little to show there's more to the right
+    if (!roomPeeked && !anyNew) {
+      roomPeeked = true;
+      setTimeout(function () { slideRoom(320); }, 900);
+      setTimeout(function () { slideRoom(0); }, 2000);
+    }
     say(anyNew ? '10-playroom-new' : '11-playroom');
   };
+
+  function slideRoom(x) {
+    try { roomScroller.scrollTo({ left: x, behavior: 'smooth' }); } catch (e) { roomScroller.scrollLeft = x; }
+  }
 
   function roomDrag(el, t) {
     var dragging = false, off = { x: 0, y: 0 }, pid = null;
@@ -625,7 +661,7 @@
       dragging = true; pid = e.pointerId;
       try { el.setPointerCapture(pid); } catch (err) {}
       // pick it up at full size
-      var p = toStage(e), cur = toySize(t);
+      var p = toRoom(e), cur = toySize(t);
       var rx = (p.x - t.x) / cur[0], ry = (p.y - t.y) / cur[1];
       t.s = 1; var sz = toySize(t);
       t.x = p.x - rx * sz[0]; t.y = p.y - ry * sz[1];
@@ -637,17 +673,30 @@
       moveBy(el, 1.1);
       sfx.tap();
     });
-    el.addEventListener('pointermove', function (e) {
-      if (!dragging || e.pointerId !== pid) return;
-      var p = toStage(e), sz = toySize(t);
-      t.x = Math.max(0, Math.min(W - sz[0], p.x - off.x));
+    var lastE = null, edgeTimer = null;
+    function follow() {
+      var p = toRoom(lastE), sz = toySize(t);
+      t.x = Math.max(0, Math.min(ROOM_W - sz[0], p.x - off.x));
       t.y = Math.max(110, Math.min(H - sz[1], p.y - off.y));
       el._nx = t.x; el._ny = t.y;
       moveBy(el, 1.1);
+    }
+    // holding a toy near the side of the screen slides the room along
+    function edgeSlide() {
+      if (!dragging || !lastE) { edgeTimer = null; return; }
+      var sx = toStage(lastE).x, v = sx > W - 120 ? 14 : sx < 120 ? -14 : 0;
+      if (v) { roomScroller.scrollLeft += v; follow(); }
+      edgeTimer = requestAnimationFrame(edgeSlide);
+    }
+    el.addEventListener('pointermove', function (e) {
+      if (!dragging || e.pointerId !== pid) return;
+      lastE = { clientX: e.clientX, clientY: e.clientY };
+      follow();
+      if (!edgeTimer) edgeTimer = requestAnimationFrame(edgeSlide);
     });
     function up(e) {
       if (!dragging || e.pointerId !== pid) return;
-      dragging = false;
+      dragging = false; lastE = null;
       commitMove(el);
       settle(t);
       el.classList.add('settling');
