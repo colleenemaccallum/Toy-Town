@@ -22,6 +22,12 @@
   function clearLater() { timers.forEach(clearTimeout); timers = []; }
   function el(tag, cls, html) { var d = document.createElement(tag); if (cls) d.className = cls; if (html) d.innerHTML = html; layer.appendChild(d); return d; }
   function bounce(e, cls) { e.classList.remove(cls); void e.offsetWidth; e.classList.add(cls); }
+  // Jeffrey's ChatGPT drumming poses: stick hits the drum on the beat, then lifts ready for the next one
+  ['drum-2', 'drum-3'].forEach(function (k) { new Image().src = 'art/jeffrey-' + k + '.webp'; });
+  function jeffHit() {
+    jeff.src = 'art/jeffrey-drum-3.webp';
+    later(function () { if (/drum-3/.test(jeff.src)) jeff.src = 'art/jeffrey-drum-2.webp'; }, 200);
+  }
   function pose(name) { jeff.src = 'art/jeffrey-' + name + '.webp'; jeff.className = 'char jf-' + name; }
   function rnd(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
 
@@ -280,7 +286,7 @@
       say('20-drum-listen');
       for (var k = 0; k < n; k++) {
         later((function (k) {
-          return function () { drum(); bounce(jeff, 'tap'); stars[k].className = 'lit'; note(1180, 380); };
+          return function () { drum(); jeffHit(); bounce(jeff, 'tap'); stars[k].className = 'lit'; note(1180, 380); };
         })(k), 1300 + k * 650);
       }
       later(function () {
