@@ -98,6 +98,45 @@ button img { width: 100%; height: 100%; object-fit: contain; }
 .toy.gone { display: none; }
 .toy.hint { animation: hint 1s ease-in-out 2; }
 
+/* ---------- 3c. Jeffrey's music corner ---------- */
+#jf-jeffrey { right: 10px; bottom: 20px; height: 380px; z-index: 6; transition: transform .15s; }
+#jf-jeffrey.jf-drum { height: 390px; }
+#jf-jeffrey.tap { animation: tap .25s ease; }
+#jf-layer > * { position: absolute; }
+.jf-pick { top: 560px; height: 290px; z-index: 5; filter: drop-shadow(0 10px 8px rgba(70,40,20,.25)); animation: bob 2.4s ease-in-out infinite; }
+.jf-pick img { object-fit: contain; }
+.jf-pick:active { transform: scale(.92); }
+.jf-target { left: 588px; top: 30px; width: 190px; height: 190px; z-index: 5; filter: drop-shadow(0 8px 6px rgba(70,40,20,.25)); }
+.jf-target img { width: 100%; height: 100%; }
+.jf-player { width: 150px; height: 200px; z-index: 8; touch-action: none; cursor: grab;
+  filter: drop-shadow(0 8px 6px rgba(70,40,20,.25));
+  transition: left .35s cubic-bezier(.3,1.4,.6,1), top .35s cubic-bezier(.3,1.4,.6,1); }
+.jf-player img { width: 100%; height: 100%; object-fit: contain; }
+.jf-player.waiting { width: 120px; height: 160px; animation: bob 2.6s ease-in-out infinite; }
+.jf-player.dragging { transition: none; transform: scale(1.15); z-index: 40; }
+.jf-player.playing img { animation: groove .5s ease-in-out infinite alternate; }
+.jf-player.hop-in { animation: arrive .5s cubic-bezier(.3,1.5,.5,1) backwards; }
+.jf-player.counted { animation: jump .5s ease; }
+.jf-row { left: 0; right: 0; top: 70px; display: flex; justify-content: center; gap: 22px; z-index: 5; }
+.jf-row img { width: 110px; height: 110px; transition: transform .2s, filter .2s, opacity .2s; }
+.jf-row img.dim { opacity: .55; filter: grayscale(.8); transform: scale(.85); }
+.jf-row img.lit { opacity: 1; transform: scale(1.1); }
+.jf-bigdrum { left: 470px; top: 470px; width: 420px; height: 390px; z-index: 5; filter: drop-shadow(0 12px 10px rgba(70,40,20,.3)); }
+.jf-bigdrum img { object-fit: contain; }
+.jf-bigdrum.hit { animation: squish .25s ease; }
+.jf-bigdrum.glow { animation: pulse .8s ease-in-out 3; }
+.jf-card { top: 830px; width: 170px; height: 170px; z-index: 9; filter: drop-shadow(0 8px 6px rgba(70,40,20,.25)); }
+.jf-card img { object-fit: contain; }
+.jf-card.right { animation: picked .7s ease forwards; }
+.jf-card.wiggle, .jf-target.wiggle { animation: shake .45s ease; }
+.jf-target.pop-in { animation: arrive .5s cubic-bezier(.3,1.5,.5,1); }
+.jf-note { position: absolute; width: 80px; height: 80px; margin: -40px 0 0 -40px; background: center/contain no-repeat;
+  animation: floatup 1.2s ease-out forwards; }
+#prize-bear.jf-host { height: 500px; }
+@keyframes tap { 0%,100% { transform: translateY(0); } 50% { transform: translateY(10px) rotate(-2deg); } }
+@keyframes groove { from { transform: rotate(-5deg) translateY(0); } to { transform: rotate(5deg) translateY(-8px); } }
+@keyframes floatup { 0% { transform: translateY(0) scale(.5); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(30px, -160px) scale(1) rotate(12deg); opacity: 0; } }
+
 /* ---------- 4. prize ---------- */
 #prize-bear { left: 60px; bottom: 50px; height: 540px; animation: jump .9s ease-in-out infinite; }
 .cushion { position: absolute; width: 250px; height: 330px; }

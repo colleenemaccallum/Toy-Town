@@ -110,6 +110,8 @@
     pop: function () { tone(523, 0, .12, 'triangle'); tone(784, .08, .2, 'triangle'); },
     boing: function () { tone(220, 0, .18, 'sine', .2); tone(196, .12, .22, 'sine', .15); },
     tada: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * .12, .35, 'triangle', .22); }); },
+    drum: function () { tone(110, 0, .22, 'sine', .45); tone(70, 0, .3, 'sine', .3); },
+    note: function (f) { tone(f, 0, .3, 'triangle', .2); tone(f * 1.5, .05, .25, 'sine', .08); },
     sparkle: function () { [1319, 1568, 1760, 2093].forEach(function (f, i) { tone(f, i * .06, .2, 'sine', .1); }); }
   };
 
@@ -164,7 +166,7 @@
     { id: 'playroom',  x: .462, w: .170, open: 'playroom' },
     { id: 'bart',      x: .654, w: .092 },
     { id: 'terry',     x: .762, w: .088 },
-    { id: 'jeffrey',   x: .861, w: .113 }
+    { id: 'jeffrey',   x: .861, w: .113, open: 'jeffrey' } // js/jeffrey.js
   ];
   var housesEl = document.getElementById('houses');
   HOUSES.forEach(function (h) {
@@ -533,6 +535,12 @@
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
   }
+
+  /* ---------- shared with the other game files (js/jeffrey.js) ---------- */
+  window.StuffieTown = {
+    W: W, H: H, go: go, enter: enter, say: say, sfx: sfx, sparks: sparks,
+    toStage: toStage, unlockAudio: unlockAudio, shuffle: shuffle
+  };
 
   go('start');
 })();
