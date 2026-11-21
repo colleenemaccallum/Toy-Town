@@ -159,12 +159,12 @@
   // Where each house sits on the wide street picture (fractions of its width / height).
   var HOUSES = [
     { id: 'baby-bear', x: .033, w: .106, open: 'tidy' },
-    { id: 'jeffrey',   x: .165, w: .106 },
+    { id: 'annie',     x: .170, w: .098 },
     { id: 'shelley',   x: .293, w: .143 },
     { id: 'playroom',  x: .462, w: .170, open: 'playroom' },
     { id: 'bart',      x: .654, w: .092 },
     { id: 'terry',     x: .762, w: .088 },
-    { id: 'annie',     x: .869, w: .097 }
+    { id: 'jeffrey',   x: .861, w: .113 }
   ];
   var housesEl = document.getElementById('houses');
   HOUSES.forEach(function (h) {
