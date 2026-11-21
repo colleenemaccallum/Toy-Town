@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stuffie Town</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Stuffie Town">
+<meta name="theme-color" content="#5aa9e6">
+<link rel="apple-touch-icon" href="art/icon-180.png">
+<link rel="icon" href="art/icon-180.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+<div id="stage">
+
+  <!-- 1. START -->
+  <section class="screen" id="start">
+    <img class="bg" src="art/bg-start.webp" alt="">
+    <div class="banner"><img src="art/title-banner.webp" alt=""><h1>Stuffie Town</h1></div>
+    <img class="char bob" id="start-bear" src="art/baby-bear-wave.webp" alt="Baby Bear">
+    <img class="char bob delay" id="start-maddie" src="art/maddie-wave.webp" alt="Maddie">
+    <button class="play pulse" id="play-btn" aria-label="Play"><img src="art/play-button.webp" alt=""></button>
+  </section>
+
+  <!-- 2. STREET -->
+  <section class="screen" id="street">
+    <div class="scroller" id="street-scroller">
+      <div class="street-wide">
+        <img class="street-img" src="art/street.webp" alt="">
+        <div id="houses"></div>
+      </div>
+    </div>
+    <button class="corner back" data-go="start" aria-label="Back"><img src="art/back-button.webp" alt=""></button>
+  </section>
+
+  <!-- 3. BABY BEAR TIDY-UP -->
+  <section class="screen" id="tidy">
+    <img class="bg" src="art/bg-baby-bear-room.webp" alt="">
+    <div id="boxes"></div>
+    <img class="char" id="tidy-bear" src="art/baby-bear-wave.webp" alt="Baby Bear">
+    <div id="toys"></div>
+    <button class="corner home" data-go="street" aria-label="Home"><img src="art/home-button.webp" alt=""></button>
+  </section>
+
+  <!-- 4. CHEER + PICK A TOY -->
+  <section class="screen" id="prize">
+    <img class="bg soft" src="art/bg-baby-bear-room.webp" alt="">
+    <div id="confetti"></div>
+    <img class="char" id="prize-bear" src="art/baby-bear-cheer.webp" alt="Baby Bear cheering">
+    <div id="prizes"></div>
+  </section>
+
+  <!-- 5. PLAYROOM -->
+  <section class="screen" id="playroom">
+    <img class="bg" src="art/bg-playroom.webp" alt="">
+    <img class="char" id="room-maddie" src="art/maddie-point.webp" alt="Maddie">
+    <img class="char" id="room-sandy" src="art/sandy-happy.webp" alt="Sandy">
+    <div id="room-toys"></div>
+    <button class="corner home" data-go="street" aria-label="Home"><img src="art/home-button.webp" alt=""></button>
+  </section>
+
+  <div id="fx"></div>
+</div>
+
+<div id="turn">
+  <div class="turn-card">
+    <div class="turn-ipad"></div>
+    <p>Turn me sideways!</p>
+  </div>
+</div>
+
+<script src="js/game.js"></script>
+</body>
+</html>

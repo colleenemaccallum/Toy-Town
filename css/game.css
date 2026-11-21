@@ -1,0 +1,155 @@
+/* Stuffie Town — the game is drawn on a fixed 1366 x 1024 "stage"
+   (the iPad Pro 12.9" landscape size) and scaled to fit any screen. */
+
+@font-face { font-family: "Fredoka"; font-weight: 700; src: url(../fonts/fredoka-700.woff2) format("woff2"); font-display: block; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  background: #f6c9dc;
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  touch-action: none;
+  font-family: "Fredoka", "Chalkboard SE", "Comic Sans MS", system-ui, sans-serif;
+}
+img { -webkit-user-drag: none; user-select: none; pointer-events: none; display: block; }
+button { border: 0; background: none; cursor: pointer; touch-action: manipulation; }
+button img { width: 100%; height: 100%; object-fit: contain; }
+
+#stage {
+  position: absolute; left: 50%; top: 50%;
+  width: 1366px; height: 1024px;
+  transform-origin: 0 0;
+  overflow: hidden;
+  background: #fff6e5;
+}
+
+.screen {
+  position: absolute; inset: 0;
+  opacity: 0; visibility: hidden;
+  transition: opacity .45s ease, visibility 0s linear .45s;
+}
+.screen.on { opacity: 1; visibility: visible; transition: opacity .45s ease; }
+
+.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.bg.soft { filter: saturate(.75) brightness(1.08); }
+.char { position: absolute; filter: drop-shadow(0 10px 8px rgba(70,40,20,.22)); }
+
+.corner {
+  position: absolute; left: 22px; top: 22px; width: 96px; height: 96px; z-index: 50;
+  filter: drop-shadow(0 6px 5px rgba(0,0,0,.2));
+}
+.corner:active { transform: scale(.9); }
+
+/* ---------- 1. start ---------- */
+.banner { position: absolute; left: 50%; top: 70px; width: 940px; transform: translateX(-50%);
+  filter: drop-shadow(0 10px 8px rgba(0,0,0,.18)); animation: sway 4s ease-in-out infinite; }
+.banner img { width: 100%; }
+.banner h1 { position: absolute; left: 0; right: 0; top: 29%; text-align: center;
+  font: 700 104px/1 "Fredoka", sans-serif; color: #fff; letter-spacing: 1px;
+  -webkit-text-stroke: 14px #7a3a86; paint-order: stroke fill;
+  text-shadow: 0 6px 0 rgba(90,30,90,.25); }
+#start-bear  { left: 120px;  bottom: 40px; height: 560px; }
+#start-maddie{ right: 110px; bottom: 30px; height: 590px; }
+.play { position: absolute; left: 50%; top: 560px; width: 270px; height: 270px; margin-left: -135px;
+  filter: drop-shadow(0 12px 10px rgba(0,0,0,.25)); }
+.play:active { transform: scale(.92); }
+
+/* ---------- 2. street ---------- */
+.scroller {
+  position: absolute; inset: 0;
+  overflow-x: auto; overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  scrollbar-width: none;
+}
+.scroller::-webkit-scrollbar { display: none; }
+.street-wide { position: relative; width: 4096px; height: 1024px; }
+.street-img { width: 4096px; height: 1024px; }
+.house { position: absolute; border-radius: 40px; touch-action: pan-x; }
+.house.open::after {
+  /* a bouncing gold star over the houses you can go into */
+  content: ""; position: absolute; left: 50%; top: -70px; width: 100px; height: 100px; margin-left: -50px;
+  background: url(../art/gold-star.webp) center/contain no-repeat;
+  filter: drop-shadow(0 6px 5px rgba(0,0,0,.2));
+  animation: hop 1.1s ease-in-out infinite;
+}
+.house.shake { animation: shake .5s ease; }
+
+/* ---------- 3. tidy-up ---------- */
+#tidy-bear { left: 40px; bottom: 40px; height: 440px; transition: transform .2s; }
+.box { position: absolute; width: 210px; height: 212px; }
+.box img { width: 100%; height: 100%; }
+.box .inside { position: absolute; left: 0; right: 0; top: 18px; height: 70px; }
+.box .inside img { position: absolute; width: 74px; height: 74px; object-fit: contain; }
+.box.happy { animation: squish .45s ease; }
+.toy {
+  position: absolute; width: 130px; height: 130px; z-index: 10;
+  touch-action: none; cursor: grab;
+  filter: drop-shadow(0 8px 6px rgba(70,40,20,.25));
+  transition: left .35s cubic-bezier(.3,1.4,.6,1), top .35s cubic-bezier(.3,1.4,.6,1), transform .2s;
+}
+.toy img { width: 100%; height: 100%; object-fit: contain; }
+.toy.dragging { transition: none; transform: scale(1.18); z-index: 40; filter: drop-shadow(0 18px 12px rgba(70,40,20,.3)); }
+.toy.wiggle { animation: shake .45s ease; }
+.toy.gone { display: none; }
+.toy.hint { animation: hint 1s ease-in-out 2; }
+
+/* ---------- 4. prize ---------- */
+#prize-bear { left: 60px; bottom: 50px; height: 540px; animation: jump .9s ease-in-out infinite; }
+.cushion { position: absolute; width: 250px; height: 330px; }
+.cushion > img.pad { position: absolute; bottom: 0; width: 250px; }
+.cushion > img.gift { position: absolute; left: 50%; bottom: 92px; height: 220px; max-width: 240px;
+  transform: translateX(-50%); object-fit: contain; filter: drop-shadow(0 8px 6px rgba(0,0,0,.22));
+  animation: float 2.2s ease-in-out infinite; }
+.cushion:nth-child(2) > img.gift { animation-delay: .4s; }
+.cushion:nth-child(3) > img.gift { animation-delay: .8s; }
+.cushion.picked { animation: picked .7s ease forwards; z-index: 20; }
+.cushion.other { opacity: .35; transition: opacity .3s; }
+#confetti img { position: absolute; width: 230px; animation: float 3s ease-in-out infinite; opacity: .9; }
+
+/* ---------- 5. playroom ---------- */
+#room-maddie { left: 120px; bottom: 30px; height: 520px; }
+#room-sandy { right: 110px; bottom: 30px; height: 520px; }
+.room-toy { position: absolute; touch-action: none; z-index: 10;
+  filter: drop-shadow(0 8px 6px rgba(70,40,20,.25)); }
+.room-toy img { width: 100%; height: 100%; object-fit: contain; }
+.room-toy.dragging { transform: scale(1.1); z-index: 40; }
+.room-toy.new { animation: arrive .9s cubic-bezier(.3,1.5,.5,1); }
+
+/* ---------- effects ---------- */
+#fx { position: absolute; inset: 0; pointer-events: none; z-index: 100; }
+.spark { position: absolute; width: 70px; height: 70px; margin: -35px 0 0 -35px;
+  background: url(../art/gold-star.webp) center/contain no-repeat;
+  animation: spark .8s ease-out forwards; }
+.cheer-on { animation: jump .5s ease 2; }
+
+/* ---------- turn the iPad sideways ---------- */
+#turn { display: none; position: fixed; inset: 0; background: #b79ce0; z-index: 999;
+  align-items: center; justify-content: center; }
+.turn-card { text-align: center; color: #fff; font-size: 44px; font-weight: 700; }
+.turn-ipad { width: 150px; height: 210px; margin: 0 auto 30px; border: 14px solid #fff; border-radius: 26px;
+  animation: rotate 2s ease-in-out infinite; }
+@media (orientation: portrait) { #turn { display: flex; } }
+
+/* ---------- animations ---------- */
+@keyframes sway { 0%,100% { transform: translateX(-50%) rotate(-1.2deg); } 50% { transform: translateX(-50%) rotate(1.2deg); } }
+.bob { animation: bob 3s ease-in-out infinite; }
+.bob.delay { animation-delay: 1.5s; }
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+.pulse { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+@keyframes hop { 0%,100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-26px) rotate(6deg); } }
+@keyframes shake { 0%,100% { transform: translateX(0) rotate(0); } 20% { transform: translateX(-14px) rotate(-5deg); }
+  40% { transform: translateX(12px) rotate(4deg); } 60% { transform: translateX(-8px) rotate(-2deg); } 80% { transform: translateX(5px); } }
+@keyframes squish { 0%,100% { transform: scale(1); } 40% { transform: scale(1.12, .9); } 70% { transform: scale(.95, 1.06); } }
+@keyframes hint { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2) rotate(-6deg); } }
+@keyframes jump { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
+@keyframes float { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-14px); } }
+#confetti img { transform: none; }
+@keyframes picked { 0% { transform: scale(1); } 50% { transform: scale(1.25) translateY(-40px); } 100% { transform: scale(1.15) translateY(-20px); } }
+@keyframes arrive { 0% { transform: scale(0) rotate(-20deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes spark { 0% { transform: scale(.3); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(1) rotate(160deg); opacity: 0; } }
+@keyframes rotate { 0%,20% { transform: rotate(0); } 60%,100% { transform: rotate(-90deg); } }
