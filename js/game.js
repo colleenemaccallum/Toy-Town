@@ -30,7 +30,7 @@
   }
 
   /* ---------- saved progress (the playroom) ---------- */
-  var SAVE_KEY = 'stuffie-town-v1';
+  var SAVE_KEY = 'stuffie-town-v2';   // v2: fresh start on 2026-11-21 (Colleen asked), old v1 toys are ignored
   var save = { toys: [] }; // [{id, x, y}]
   try { var s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.toys) save = s; } catch (e) {}
   function store() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
@@ -46,6 +46,7 @@
       try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
     }
     if (actx && actx.state === 'suspended') actx.resume();
+    loadToySounds();
     if (actx && musicOn && music.paused && !document.hidden) startMusic();
   }
   /* Background music: one quiet looping song (audio/music/background.m4a).
@@ -110,8 +111,78 @@
     pop: function () { tone(523, 0, .12, 'triangle'); tone(784, .08, .2, 'triangle'); },
     boing: function () { tone(220, 0, .18, 'sine', .2); tone(196, .12, .22, 'sine', .15); },
     tada: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * .12, .35, 'triangle', .22); }); },
-    sparkle: function () { [1319, 1568, 1760, 2093].forEach(function (f, i) { tone(f, i * .06, .2, 'sine', .1); }); }
+    sparkle: function () { [659, 784, 880, 1047].forEach(function (f, i) { tone(f, i * .07, .25, 'sine', .09); }); }
   };
+
+  /* ---------- each toy has its own soft sound (plays when she picks it up) ----------
+     A few are short recordings (audio/toys, all CC0 from Freesound: see audio/toys/CREDITS.txt).
+     The rest are made right here: low, soft notes, nothing sharp or loud. */
+  function glide(f0, f1, start, dur, type, vol) {
+    if (!actx) return;
+    var t = actx.currentTime + start, o = actx.createOscillator(), g = actx.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + dur + 0.05);
+  }
+  var noiseBuf = null;
+  function hush(start, dur, f0, f1, vol, q) {     // soft filtered noise: swishes, whooshes, knocks
+    if (!actx) return;
+    if (!noiseBuf) {
+      noiseBuf = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
+      var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    var t = actx.currentTime + start, src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+    src.buffer = noiseBuf; f.type = 'bandpass'; f.Q.value = q || 1;
+    f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.35);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(actx.destination); src.start(t); src.stop(t + dur + 0.05);
+  }
+  function knock(start, f) { tone(f, start, .09, 'sine', .22); hush(start, .05, 500, 400, .12, 2); }
+  var TOY_FILES = ['baby-doll', 'play-doh', 'puppy', 'race-car'], toyBufs = {}, toyGain = null;
+  function loadToySounds() {
+    if (!actx || toyGain) return;
+    toyGain = actx.createGain(); toyGain.gain.value = 0.8; toyGain.connect(actx.destination);
+    TOY_FILES.forEach(function (n) {
+      fetch('audio/toys/' + n + '.mp3').then(function (r) { return r.arrayBuffer(); }).then(function (b) {
+        actx.decodeAudioData(b, function (buf) { toyBufs[n] = buf; }, function () {});
+      }).catch(function () {});
+    });
+  }
+  var TOY_SFX = {
+    'xylophone':      function () { [262, 330, 392].forEach(function (f, i) { tone(f, i * .14, .45, 'sine', .2); tone(f * 4, i * .14, .12, 'sine', .02); }); },
+    'toy-piano':      function () { [196, 262, 330].forEach(function (f, i) { tone(f, i * .16, .6, 'triangle', .16); }); },
+    'music-box':      function () { [392, 523, 659, 523, 392].forEach(function (f, i) { tone(f, i * .2, .7, 'sine', .09); }); },
+    'stacking-rings': function () { [280, 320, 360].forEach(function (f, i) { knock(i * .12, f); }); },
+    'blocks':         function () { knock(0, 220); knock(.16, 250); },
+    'magnet-tiles':   function () { hush(0, .05, 900, 800, .14, 3); hush(.12, .05, 900, 800, .14, 3); },
+    'tea-set':        function () { tone(784, 0, .35, 'sine', .07); tone(784, .2, .35, 'sine', .06); },
+    'fire-truck':     function () { tone(523, 0, .5, 'sine', .12); tone(523, .3, .5, 'sine', .1); },
+    'dump-truck':     function () { glide(70, 95, 0, .6, 'triangle', .2); tone(392, .45, .14, 'sine', .07); tone(392, .65, .14, 'sine', .07); },
+    'rocket':         function () { hush(0, .9, 250, 1200, .16, 1.2); },
+    'doll-stroller':  function () { for (var i = 0; i < 4; i++) hush(i * .1, .06, 1200, 1100, .06, 4); },
+    'doll-house':     function () { knock(0, 160); knock(.18, 160); },
+    'dress-up':       function () { [523, 659, 784].forEach(function (f, i) { tone(f, i * .09, .35, 'sine', .07); }); },
+    'paint-easel':    function () { hush(0, .3, 700, 900, .12, 1); hush(.28, .3, 900, 700, .1, 1); },
+    'bunny':          function () { glide(260, 420, 0, .22, 'sine', .14); glide(300, 480, .22, .22, 'sine', .11); }
+  };
+  var lastToySound = 0;
+  function toySound(id) {
+    if (!actx) return false;
+    var now = actx.currentTime;
+    if (now - lastToySound < .35) return true;     // no pile-ups from quick taps
+    lastToySound = now;
+    if (toyBufs[id]) {
+      var src = actx.createBufferSource(); src.buffer = toyBufs[id]; src.connect(toyGain); src.start();
+      return true;
+    }
+    if (TOY_SFX[id]) { TOY_SFX[id](); return true; }
+    return false;
+  }
 
   function sparks(x, y, n) {
     for (var i = 0; i < (n || 7); i++) {
@@ -271,6 +342,20 @@
     return null;
   }
 
+  /* Smooth dragging: while a finger moves a toy, slide it with a GPU transform
+     instead of left/top. Moving left/top under a drop shadow left smeared
+     trails on iPad Safari. */
+  function moveBy(el, sc) {
+    el.style.transform = 'translate3d(' + (el._nx - el._bx) + 'px,' + (el._ny - el._by) + 'px,0) scale(' + sc + ')';
+  }
+  function commitMove(el) {
+    // still "dragging" (no transition) while we swap transform for left/top
+    el.style.left = el._nx + 'px'; el.style.top = el._ny + 'px';
+    el.style.transform = '';
+    void el.offsetWidth;
+    el.classList.remove('dragging');
+  }
+
   function makeDraggable(el, toy) {
     var dragging = false, off = { x: 0, y: 0 }, pid = null;
     el.addEventListener('pointerdown', function (e) {
@@ -279,21 +364,25 @@
       dragging = true; pid = e.pointerId;
       try { el.setPointerCapture(pid); } catch (err) {}
       var p = toStage(e);
-      off.x = p.x - parseFloat(el.style.left); off.y = p.y - parseFloat(el.style.top);
+      el._bx = parseFloat(el.style.left); el._by = parseFloat(el.style.top);
+      el._nx = el._bx; el._ny = el._by;
+      off.x = p.x - el._bx; off.y = p.y - el._by;
       el.classList.add('dragging'); el.classList.remove('hint');
+      moveBy(el, 1.18);
       sfx.tap(); resetIdle();
     });
     el.addEventListener('pointermove', function (e) {
       if (!dragging || e.pointerId !== pid) return;
       var p = toStage(e);
-      el.style.left = Math.max(-30, Math.min(W - 100, p.x - off.x)) + 'px';
-      el.style.top = Math.max(-30, Math.min(H - 100, p.y - off.y)) + 'px';
+      el._nx = Math.max(-30, Math.min(W - 100, p.x - off.x));
+      el._ny = Math.max(-30, Math.min(H - 100, p.y - off.y));
+      moveBy(el, 1.18);
     });
     function drop(e) {
       if (!dragging || e.pointerId !== pid) return;
       dragging = false;
-      el.classList.remove('dragging');
-      var p = { x: parseFloat(el.style.left) + 65, y: parseFloat(el.style.top) + 65 };
+      commitMove(el);
+      var p = { x: el._nx + 65, y: el._ny + 65 };
       var b = boxUnder(p);
       if (b && b.color === toy.color) putAway(el, toy, b);
       else {
@@ -338,26 +427,32 @@
 
   /* ===== 4. CHEER + PICK 1 OF 3 ===== */
   // One girl-leaning, one boy-leaning, one in-between. No labels.
-  var PRIZES = [
-    { id: 'baby-doll',   h: 230 },
-    { id: 'race-car',    h: 150 },
-    { id: 'paint-easel', h: 220 }
+  // Prize toys in three groups. Each time she picks from one of each group,
+  // toys she doesn't have yet first. No labels on screen.
+  var PRIZE_GROUPS = [
+    [ { id: 'baby-doll', h: 230 }, { id: 'doll-house', h: 210 }, { id: 'dress-up', h: 200 }, { id: 'tea-set', h: 170 },
+      { id: 'doll-stroller', h: 220 }, { id: 'music-box', h: 230 } ],
+    [ { id: 'race-car', h: 150 }, { id: 'fire-truck', h: 170 }, { id: 'dump-truck', h: 160 }, { id: 'rocket', h: 230 } ],
+    [ { id: 'paint-easel', h: 220 }, { id: 'blocks', h: 200 }, { id: 'magnet-tiles', h: 200 },
+      { id: 'play-doh', h: 175 }, { id: 'bunny', h: 200 }, { id: 'xylophone', h: 140 },
+      { id: 'stacking-rings', h: 210 }, { id: 'toy-piano', h: 180 }, { id: 'puppy', h: 180 } ]
   ];
+  function pickPrizes() {
+    var owned = {};
+    save.toys.forEach(function (t) { owned[t.id] = true; });
+    return PRIZE_GROUPS.map(function (g) {
+      var fresh = g.filter(function (p) { return !owned[p.id]; });
+      var pool = fresh.length ? fresh : g;
+      return pool[Math.floor(Math.random() * pool.length)];
+    });
+  }
   var prizesEl = document.getElementById('prizes');
-  var confettiEl = document.getElementById('confetti');
-  [[120, 60, -12], [1000, 40, 14], [520, 90, 4], [1120, 300, -8]].forEach(function (c, i) {
-    var img = document.createElement('img');
-    img.src = 'art/confetti.webp';
-    img.style.left = c[0] + 'px'; img.style.top = c[1] + 'px';
-    img.style.rotate = c[2] + 'deg';
-    img.style.animationDelay = (i * .5) + 's';
-    confettiEl.appendChild(img);
-  });
+  // (no floating confetti here: she kept trying to tap it)
   var picking = false;
   enter.prize = function () {
     picking = false;
     prizesEl.innerHTML = '';
-    shuffle(PRIZES.slice()).forEach(function (p, i) {
+    shuffle(pickPrizes()).forEach(function (p, i) {
       var c = document.createElement('div');
       c.className = 'cushion';
       c.style.left = (520 + i * 280) + 'px';
@@ -369,6 +464,7 @@
         if (picking) return;
         picking = true;
         unlockAudio(); sfx.sparkle();
+        setTimeout(function () { toySound(p.id); }, 450);
         c.classList.add('picked');
         prizesEl.querySelectorAll('.cushion').forEach(function (o) { if (o !== c) o.classList.add('other'); });
         sparks(520 + i * 280 + 125, 600, 10);
@@ -383,19 +479,32 @@
   };
 
   /* ===== 5. PLAYROOM ===== */
-  var ROOM_SIZE = { 'baby-doll': [90, 143], 'race-car': [143, 98], 'paint-easel': [135, 158] };
+  var ROOM_SIZE = {
+    'baby-doll': [90, 143], 'race-car': [143, 98], 'paint-easel': [135, 158],
+    'doll-house': [142, 150], 'dress-up': [130, 125], 'tea-set': [140, 123], 'fire-truck': [150, 133],
+    'blocks': [116, 120], 'magnet-tiles': [117, 115], 'play-doh': [134, 117], 'bunny': [120, 115],
+    'doll-stroller': [126, 140], 'music-box': [92, 150], 'dump-truck': [133, 100], 'rocket': [109, 150],
+    'xylophone': [137, 85], 'stacking-rings': [113, 130], 'toy-piano': [134, 115], 'puppy': [147, 115]
+  };
   var roomEl = document.getElementById('room-toys');
   var furnEl = document.getElementById('furniture');
+  var roomScroller = document.getElementById('room-scroller');
+  var roomWide = document.getElementById('room-wide');
+  var ROOM_W = 2925;      // the playroom is about two screens wide
+  // screen point -> playroom point (adds how far the room is slid over)
+  function toRoom(e) { var p = toStage(e); p.x += roomScroller.scrollLeft; return p; }
 
   // Places a toy can sit. y = the line the toy's bottom rests on.
   // maxH (optional) = the tallest a toy can be there; bigger toys shrink to fit (cubbies).
   // The two wall shelves are part of the playroom picture.
   var SHELVES = [
     { x0: 40,   x1: 350,  y: 300 },
-    { x0: 1015, x1: 1325, y: 300 }
+    { x0: 1015, x1: 1325, y: 300 },
+    { x0: 1490, x1: 1858, y: 358 },
+    { x0: 2410, x1: 2785, y: 358 }
   ];
   var FLOOR_TOP = 690;      // toy bottoms below this line are "on the floor"
-  var surfaces = SHELVES.slice();
+  var surfaces = SHELVES.slice();  // rebuilt by rebuildSurfaces()
 
   // Furniture pieces (ChatGPT felt art). left/bottom/width = where it stands;
   // tops = flat places on it as fractions of the picture: [from x, to x, at y, max toy height (fraction)].
@@ -403,22 +512,122 @@
     { id: 'cubby-bookcase', left: 18,   bottom: 700, width: 400, tops: [[.06, .94, .10], [.08, .92, .485, .26], [.08, .92, .88, .26]] },
     { id: 'window-seat',    left: 448,  bottom: 655, width: 470, tops: [[.2, .8, .45]] },
     { id: 'toy-chest',      left: 1010, bottom: 695, width: 310, tops: [[.08, .92, .18]] },
-    { id: 'tea-table',      left: 508,  bottom: 975, width: 350, tops: [[.3, .7, .28], [.02, .24, .52], [.76, .98, .52]] }
+    { id: 'tea-table',      left: 463,  bottom: 965, width: 430, tops: [[.3, .7, .28], [.02, .24, .52], [.76, .98, .52]] },
+    // the second half of the room
+    { id: 'dress-up-rack',  left: 1385, bottom: 700, width: 280, tops: [] },
+    { id: 'beanbag',        left: 1935, bottom: 765, width: 260, tops: [[.2, .8, .56]] },
+    { id: 'plant',          left: 2290, bottom: 690, width: 130, tops: [] },
+    { id: 'play-kitchen',   left: 2470, bottom: 715, width: 260, tops: [[.06, .94, .33]] },
+    { id: 'rocking-horse',  left: 1690, bottom: 905, width: 260, tops: [[.38, .72, .40]] },
+    { id: 'floor-pouf',     left: 2255, bottom: 905, width: 190, tops: [[.2, .8, .12]] }
   ];
+  // Furniture you can tap: the toy chest lid opens and closes (toys can go
+  // inside), and each bench drawer slides open and shut.
+  var chest = FURNITURE[2], seat = FURNITURE[1];
+  chest.open = false;
+  chest.openArt = { src: 'art/toy-chest-open.webp', left: 1018, width: 295 };
+  seat.drawers = { left: false, right: false };
+  ['toy-chest-open', 'window-seat-left', 'window-seat-right', 'window-seat-both'].forEach(function (n) { new Image().src = 'art/' + n + '.webp'; });
+
+  function rebuildSurfaces() {
+    surfaces = SHELVES.slice();
+    FURNITURE.forEach(function (f) { (f.surfs || []).forEach(function (s) { surfaces.push(s); }); });
+  }
+  function surfsFor(f, h) {
+    return f.tops.map(function (t) {
+      return { x0: f.left + t[0] * f.width, x1: f.left + t[1] * f.width, y: f.bottom - h + t[2] * h,
+               maxH: t[3] ? t[3] * h : 0 };
+    });
+  }
+
+  function onTap(el, fn) {
+    var sx = 0, sy = 0;
+    el.addEventListener('pointerdown', function (e) { sx = e.clientX; sy = e.clientY; });
+    el.addEventListener('pointerup', function (e) {
+      if (Math.abs(e.clientX - sx) < 14 && Math.abs(e.clientY - sy) < 14) { unlockAudio(); fn(e); }
+    });
+  }
+
   FURNITURE.forEach(function (f) {
     var img = new Image();
     img.onload = function () {
+      if (f.h) return;               // already set up
       var h = f.width * img.naturalHeight / img.naturalWidth;
+      f.h = h; f.img = img;
       img.className = 'furniture';
       img.style.left = f.left + 'px'; img.style.top = (f.bottom - h) + 'px'; img.style.width = f.width + 'px';
       furnEl.appendChild(img);
-      f.tops.forEach(function (t) {
-        surfaces.push({ x0: f.left + t[0] * f.width, x1: f.left + t[1] * f.width, y: f.bottom - h + t[2] * h,
-                        maxH: t[3] ? t[3] * h : 0 });
-      });
+      f.surfs = surfsFor(f, h);
+      rebuildSurfaces();
+      if (f === chest) setupChest();
+      if (f === seat) setupSeat();
     };
     img.src = 'art/' + f.id + '.webp';
   });
+
+  function setupSeat() {
+    seat.img.classList.add('tappable');
+    onTap(seat.img, function (e) {
+      var p = toRoom(e), side = p.x < seat.left + seat.width / 2 ? 'left' : 'right';
+      seat.drawers[side] = !seat.drawers[side];
+      var d = seat.drawers, n = d.left && d.right ? '-both' : d.left ? '-left' : d.right ? '-right' : '';
+      seat.img.src = 'art/window-seat' + n + '.webp';
+      seat.drawers[side] ? sfx.pop() : sfx.tap();
+    });
+  }
+
+  // The open chest: the open picture, plus the same picture's front part laid
+  // over the toys so toys put inside look like they're really in the chest.
+  var chestFront = null;
+  function setupChest() {
+    chest.img.classList.add('tappable');
+    var oa = chest.openArt;
+    var open = new Image();
+    open.onload = function () {
+      var h = oa.width * open.naturalHeight / open.naturalWidth;
+      oa.h = h; oa.top = chest.bottom - h;
+      oa.inside = { x0: oa.left + .18 * oa.width, x1: oa.left + .82 * oa.width, y: oa.top + .58 * h, maxH: 0, inside: true };
+    };
+    open.src = oa.src;
+    chestFront = document.createElement('img');
+    chestFront.className = 'furniture chest-front tappable';
+    chestFront.src = oa.src;
+    chestFront.style.left = oa.left + 'px'; chestFront.style.width = oa.width + 'px';
+    chestFront.style.display = 'none';
+    roomWide.appendChild(chestFront);
+    onTap(chest.img, toggleChest);
+    onTap(chestFront, toggleChest);
+  }
+  function toggleChest() {
+    var oa = chest.openArt;
+    if (!oa.h) return;
+    chest.open = !chest.open;
+    if (chest.open) {
+      chest.img.src = oa.src;
+      chest.img.style.left = oa.left + 'px'; chest.img.style.width = oa.width + 'px'; chest.img.style.top = oa.top + 'px';
+      chestFront.style.top = oa.top + 'px'; chestFront.style.display = 'block';
+      chest.surfs = [oa.inside];
+      sfx.pop();
+    } else {
+      chest.img.src = 'art/' + chest.id + '.webp';
+      chest.img.style.left = chest.left + 'px'; chest.img.style.width = chest.width + 'px'; chest.img.style.top = (chest.bottom - chest.h) + 'px';
+      chestFront.style.display = 'none';
+      chest.surfs = surfsFor(chest, chest.h);
+      sfx.tap();
+    }
+    rebuildSurfaces();
+    // toys sitting on the lid hop off when it opens; toys inside hide when it closes
+    roomEl.querySelectorAll('.room-toy').forEach(function (el) {
+      var t = el._toy;
+      if (t.inside) { el.style.display = chest.open ? '' : 'none'; return; }
+      if (chest.open && t.onLid) {
+        t.x = chest.left - toySize(t)[0] - 10; t.y = 0;   // set down beside the chest
+        t.y = FLOOR_TOP + 70 - toySize(t)[1]; t.onLid = false;
+        el.classList.add('settling'); placeEl(el, t);
+      }
+    });
+    store();
+  }
 
   // size of a toy at its current spot (smaller inside cubbies)
   function toySize(t) {
@@ -443,24 +652,45 @@
       if (d < 90 && d < bestD) { best = s; bestD = d; }
     });
     t.s = (best && best.maxH && full[1] > best.maxH) ? best.maxH / full[1] : 1;
+    t.inside = !!(best && best.inside);
+    t.onLid = !!(best && !chest.open && chest.surfs && chest.surfs.indexOf(best) >= 0);
     if (best) bottom = best.y + 4;
     else if (bottom < FLOOR_TOP) bottom = FLOOR_TOP + 70;
     bottom = Math.min(bottom, H - 10);
     var sz = toySize(t);
-    t.x = Math.max(0, Math.min(W - sz[0], cx - sz[0] / 2));
+    t.x = Math.max(0, Math.min(ROOM_W - sz[0], cx - sz[0] / 2));
     t.y = bottom - sz[1];
   }
 
   // where new toys first land (toy center x, bottom y), tried in order:
   // window seat, toy chest, bookcase top, tea table, wall shelves, floor
-  var NEW_SPOTS = [[683, 576], [1165, 527], [218, 437], [683, 825], [195, 300], [1170, 300], [430, 900], [940, 900]];
+  var NEW_SPOTS = [[683, 576], [1165, 527], [218, 437], [683, 765], [195, 300], [1170, 300],
+    [560, 576], [806, 576], [120, 300], [1250, 300], [519, 832], [837, 832],
+    [106, 548], [218, 548], [330, 548], [106, 665], [218, 665], [330, 665],
+    [420, 920], [950, 920], [300, 990], [1060, 990],
+    // second half of the room
+    [2600, 415], [2065, 640], [1570, 358], [1770, 358], [2500, 358], [2700, 358], [2350, 795],
+    [1820, 790], [1600, 950], [2100, 950], [2600, 950], [1900, 1000], [2400, 1000]];
+  function freeSpot() {
+    for (var i = 0; i < NEW_SPOTS.length; i++) {
+      var sp = NEW_SPOTS[i], taken = save.toys.some(function (o) {
+        if (o.x === null) return false;
+        var z = toySize(o);
+        return Math.abs(o.x + z[0] / 2 - sp[0]) < 70 && Math.abs(o.y + z[1] - sp[1]) < 40 && !(o.inside && !chest.open);
+      });
+      if (!taken) return sp;
+    }
+    return [683, 900];
+  }
 
+  var roomPeeked = false;
   enter.playroom = function () {
     roomEl.innerHTML = '';
-    var anyNew = false;
+    var anyNew = false, showX = 0;
+    roomScroller.scrollLeft = 0;
     save.toys.forEach(function (t, i) {
       if (t.x === null) {
-        var s = NEW_SPOTS[i % NEW_SPOTS.length], sz0 = toySize(t);
+        var s = freeSpot(), sz0 = toySize(t);
         t.x = s[0] - sz0[0] / 2; t.y = s[1] - sz0[1];
         settle(t);
       }
@@ -468,18 +698,33 @@
       d.className = 'room-toy' + (t.isNew ? ' new' : '');
       placeEl(d, t);
       d.innerHTML = '<img src="art/' + t.id + '.webp" alt="">';
+      d._toy = t;
+      if (t.inside && !chest.open) d.style.display = 'none';
       if (t.isNew) {
         anyNew = true;
+        // slide over so the new toy is on screen before it sparkles
+        showX = Math.max(0, Math.min(ROOM_W - W, t.x - W / 2));
+        roomScroller.scrollLeft = showX;
         var sz = toySize(t);
-        setTimeout(function () { sparks(t.x + sz[0] / 2, t.y + sz[1] / 2, 9); sfx.sparkle(); }, 350);
+        setTimeout(function () { sparks(t.x - roomScroller.scrollLeft + sz[0] / 2, t.y + sz[1] / 2, 9); sfx.sparkle(); }, 350);
         t.isNew = false;
       }
       roomDrag(d, t);
       roomEl.appendChild(d);
     });
     store();
+    // the first time, the room slides a little to show there's more to the right
+    if (!roomPeeked && !anyNew) {
+      roomPeeked = true;
+      setTimeout(function () { slideRoom(320); }, 900);
+      setTimeout(function () { slideRoom(0); }, 2000);
+    }
     say(anyNew ? '10-playroom-new' : '11-playroom');
   };
+
+  function slideRoom(x) {
+    try { roomScroller.scrollTo({ left: x, behavior: 'smooth' }); } catch (e) { roomScroller.scrollLeft = x; }
+  }
 
   function roomDrag(el, t) {
     var dragging = false, off = { x: 0, y: 0 }, pid = null;
@@ -488,25 +733,43 @@
       dragging = true; pid = e.pointerId;
       try { el.setPointerCapture(pid); } catch (err) {}
       // pick it up at full size
-      var p = toStage(e), cur = toySize(t);
+      var p = toRoom(e), cur = toySize(t);
       var rx = (p.x - t.x) / cur[0], ry = (p.y - t.y) / cur[1];
       t.s = 1; var sz = toySize(t);
       t.x = p.x - rx * sz[0]; t.y = p.y - ry * sz[1];
       off.x = p.x - t.x; off.y = p.y - t.y;
       el.classList.remove('settling');
+      el.classList.add('dragging');
       placeEl(el, t);
-      el.classList.add('dragging'); sfx.tap();
+      el._bx = el._nx = t.x; el._by = el._ny = t.y;
+      moveBy(el, 1.1);
+      if (!toySound(t.id)) sfx.tap();
     });
+    var lastE = null, edgeTimer = null;
+    function follow() {
+      var p = toRoom(lastE), sz = toySize(t);
+      t.x = Math.max(0, Math.min(ROOM_W - sz[0], p.x - off.x));
+      t.y = Math.max(110, Math.min(H - sz[1], p.y - off.y));
+      el._nx = t.x; el._ny = t.y;
+      moveBy(el, 1.1);
+    }
+    // holding a toy near the side of the screen slides the room along
+    function edgeSlide() {
+      if (!dragging || !lastE) { edgeTimer = null; return; }
+      var sx = toStage(lastE).x, v = sx > W - 120 ? 14 : sx < 120 ? -14 : 0;
+      if (v) { roomScroller.scrollLeft += v; follow(); }
+      edgeTimer = requestAnimationFrame(edgeSlide);
+    }
     el.addEventListener('pointermove', function (e) {
       if (!dragging || e.pointerId !== pid) return;
-      var p = toStage(e), sz = toySize(t);
-      t.x = Math.max(0, Math.min(W - sz[0], p.x - off.x));
-      t.y = Math.max(110, Math.min(H - sz[1], p.y - off.y));
-      el.style.left = t.x + 'px'; el.style.top = t.y + 'px';
+      lastE = { clientX: e.clientX, clientY: e.clientY };
+      follow();
+      if (!edgeTimer) edgeTimer = requestAnimationFrame(edgeSlide);
     });
     function up(e) {
       if (!dragging || e.pointerId !== pid) return;
-      dragging = false; el.classList.remove('dragging');
+      dragging = false; lastE = null;
+      commitMove(el);
       settle(t);
       el.classList.add('settling');
       placeEl(el, t);

@@ -59,18 +59,22 @@
   <!-- 4. CHEER + PICK A TOY -->
   <section class="screen" id="prize">
     <img class="bg soft" src="art/bg-baby-bear-room.webp" alt="">
-    <div id="confetti"></div>
     <img class="char" id="prize-bear" src="art/baby-bear-cheer.webp" alt="Baby Bear cheering">
     <div id="prizes"></div>
   </section>
 
   <!-- 5. PLAYROOM -->
   <section class="screen" id="playroom">
-    <img class="bg" src="art/bg-playroom.webp" alt="">
-    <div id="furniture"></div>
-    <img class="char" id="room-maddie" src="art/maddie-point.webp" alt="Maddie">
-    <img class="char" id="room-sandy" src="art/sandy-happy.webp" alt="Sandy">
-    <div id="room-toys"></div>
+    <!-- the playroom is two screens wide: slide sideways to see the rest -->
+    <div class="scroller" id="room-scroller">
+      <div class="room-wide" id="room-wide">
+        <img class="room-bg" src="art/bg-playroom-wide.webp" alt="">
+        <div id="furniture"></div>
+        <img class="char" id="room-maddie" src="art/maddie-point.webp" alt="Maddie">
+        <img class="char" id="room-sandy" src="art/sandy-happy.webp" alt="Sandy">
+        <div id="room-toys"></div>
+      </div>
+    </div>
     <button class="corner home" data-go="street" aria-label="Home"><img src="art/home-button.webp" alt=""></button>
   </section>
 

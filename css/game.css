@@ -89,11 +89,11 @@ button img { width: 100%; height: 100%; object-fit: contain; }
 .toy {
   position: absolute; width: 130px; height: 130px; z-index: 10;
   touch-action: none; cursor: grab;
-  filter: drop-shadow(0 8px 6px rgba(70,40,20,.25));
+  will-change: transform; -webkit-backface-visibility: hidden; backface-visibility: hidden;
   transition: left .35s cubic-bezier(.3,1.4,.6,1), top .35s cubic-bezier(.3,1.4,.6,1), transform .2s;
 }
-.toy img { width: 100%; height: 100%; object-fit: contain; }
-.toy.dragging { transition: none; transform: scale(1.18); z-index: 40; filter: drop-shadow(0 18px 12px rgba(70,40,20,.3)); }
+.toy img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 6px rgba(70,40,20,.25)); }
+.toy.dragging { transition: none; z-index: 40; }
 .toy.wiggle { animation: shake .45s ease; }
 .toy.gone { display: none; }
 .toy.hint { animation: hint 1s ease-in-out 2; }
@@ -163,15 +163,19 @@ button img { width: 100%; height: 100%; object-fit: contain; }
 .cushion:nth-child(3) > img.gift { animation-delay: .8s; }
 .cushion.picked { animation: picked .7s ease forwards; z-index: 20; }
 .cushion.other { opacity: .35; transition: opacity .3s; }
-#confetti img { position: absolute; width: 230px; animation: float 3s ease-in-out infinite; opacity: .9; }
 
 /* ---------- 5. playroom ---------- */
+.room-wide { position: relative; width: 2925px; height: 1024px; }
+.room-bg { position: absolute; left: 0; top: 0; width: 2925px; height: 1024px; }
+.furniture.tappable { touch-action: pan-x; }
 #room-maddie { left: 10px; bottom: 12px; height: 350px; }
 #room-sandy { right: 10px; bottom: 12px; height: 350px; }
 .room-toy { position: absolute; touch-action: none; z-index: 10;
-  filter: drop-shadow(0 8px 6px rgba(70,40,20,.25)); }
-.room-toy img { width: 100%; height: 100%; object-fit: contain; }
-.room-toy.dragging { transform: scale(1.1); z-index: 40; }
+  will-change: transform; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.room-toy img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 6px rgba(70,40,20,.25)); }
+.room-toy.dragging { transition: none; z-index: 40; }
+.furniture.tappable { pointer-events: auto; cursor: pointer; }
+.chest-front { z-index: 12; clip-path: inset(46% 0 0 0); -webkit-clip-path: inset(46% 0 0 0); }
 .furniture { position: absolute; filter: drop-shadow(0 10px 8px rgba(70,40,20,.22)); }
 #room-maddie, #room-sandy { z-index: 6; }
 .room-toy.settling { transition: top .35s cubic-bezier(.4,1.6,.6,1), left .2s, width .2s, height .2s; }
@@ -205,7 +209,6 @@ button img { width: 100%; height: 100%; object-fit: contain; }
 @keyframes hint { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2) rotate(-6deg); } }
 @keyframes jump { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
 @keyframes float { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-14px); } }
-#confetti img { transform: none; }
 @keyframes picked { 0% { transform: scale(1); } 50% { transform: scale(1.25) translateY(-40px); } 100% { transform: scale(1.15) translateY(-20px); } }
 @keyframes arrive { 0% { transform: scale(0) rotate(-20deg); } 100% { transform: scale(1) rotate(0); } }
 @keyframes spark { 0% { transform: scale(.3); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(1) rotate(160deg); opacity: 0; } }
