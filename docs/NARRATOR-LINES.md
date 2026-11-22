@@ -21,3 +21,4 @@ or swap in the matching line from the story bible script.
 | 09-great-pick.m4a | A prize is picked | "Great pick! Let's take it to the playroom." |
 | 10-playroom-new.m4a | Playroom, after a new toy | "Look, your new toy is here! You can move it anywhere you like." |
 | 11-playroom.m4a | Playroom, just visiting | "Welcome to your playroom!" |
+| 12-dress-up.m4a | Maddie's dress-up screen opens | "Let's dress up Maddie! Tap a bow, a top, a skirt or shoes." |

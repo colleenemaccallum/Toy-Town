@@ -792,7 +792,10 @@
 
   // size of a toy at its current spot (smaller inside cubbies)
   function toySize(t) {
-    if (t.pal) { var P = PALS[t.id], k = t.sitting ? P.sit : P.stand; return [k[1] * k[2], k[1]]; }
+    if (t.pal) {
+      var P = PALS[t.id], k = t.sitting ? P.sit : P.stand, md = dressOf(t);
+      return [k[1] * (md ? md.ratio(t.sitting) : k[2]), k[1]];
+    }
     var sz = ROOM_SIZE[t.id] || [110, 110], s = t.s || 1;
     return [sz[0] * s, sz[1] * s];
   }
@@ -835,10 +838,17 @@
     maddie: { stand: ['maddie-point', 300, 610 / 969], sit: ['maddie-sit', 230, 514 / 857], lap: .70, home: [10, 1012] },
     sandy:  { stand: ['sandy-happy', 300, 726 / 980], sit: ['sandy-sit', 230, 615 / 858], lap: .72, home: [ROOM_W - 232, 1012] }
   };
+  // Maddie's dress-up look (js/dressup.js): once she wears something new, her
+  // picture is the stack of dress-up layers. She sits only if sitting layers exist.
+  function dressOf(t) {
+    var md = t.id === 'maddie' && window.StuffieTown && window.StuffieTown.maddieDress;
+    return md && md.dressed() ? md : null;
+  }
   function settlePal(t) {
     var P = PALS[t.id], st = P.stand[1], cx = t.x + toySize(t)[0] / 2, hip = t.y + st * .62, best = null, bestD = 1e9;
+    var md = dressOf(t), noSeat = md && !md.canSit();
     surfaces.forEach(function (s) {
-      if (!s.seat || cx < s.x0 - 30 || cx > s.x1 + 30) return;
+      if (noSeat || !s.seat || cx < s.x0 - 30 || cx > s.x1 + 30) return;
       var d = Math.abs(hip - s.y);
       if (d < 140 && d < bestD) { best = s; bestD = d; }
     });
@@ -850,8 +860,11 @@
     t.x = Math.max(0, Math.min(ROOM_W - sz[0], cx - sz[0] / 2));
   }
   function palImg(el, t) {
-    var P = PALS[t.id];
-    el.querySelector('img').src = 'art/' + (t.sitting ? P.sit[0] : P.stand[0]) + '.webp';
+    var P = PALS[t.id], md = dressOf(t);
+    if (md && t.sitting && !md.canSit()) t.sitting = false;
+    el.classList.toggle('dz-stack', !!md);
+    el.innerHTML = md ? md.html(t.sitting)
+      : '<img src="art/' + (t.sitting ? P.sit[0] : P.stand[0]) + '.webp" alt="">';
   }
   ['maddie-sit', 'sandy-sit'].forEach(function (n) { new Image().src = 'art/' + n + '.webp'; });
   function addPals() {
@@ -864,8 +877,10 @@
       }
       var d = document.createElement('div');
       d.className = 'room-toy room-pal';
-      d.innerHTML = '<img src="" alt="">';
       d._toy = t;
+      // dressed up with no sitting pictures yet: she hops down and stands
+      var md = dressOf(t);
+      if (md && t.sitting && !md.canSit()) { t.sitting = false; settlePal(t); }
       palImg(d, t); placeEl(d, t);
       roomDrag(d, t);
       roomEl.appendChild(d);
