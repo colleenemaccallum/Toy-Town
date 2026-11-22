@@ -268,12 +268,13 @@
 
   /* ===== 3. BABY BEAR TIDY-UP (round 1: colors) ===== */
   var BOXES = [
-    { color: 'red',    x: 438 },
-    { color: 'blue',   x: 654 },
-    { color: 'yellow', x: 870 },
-    { color: 'green',  x: 1086 }
+    // bigger bins, centered on the page: 4 x 250px with 14px gaps
+    { color: 'red',    x: 162 },
+    { color: 'blue',   x: 426 },
+    { color: 'yellow', x: 690 },
+    { color: 'green',  x: 954 }
   ];
-  var BOX_Y = 528;
+  var BOX_Y = 600;   // bins in the middle of the floor, Baby Bear stands behind them
   var TOYS = [
     { id: 'red-ball',    color: 'red' },
     { id: 'red-car',     color: 'red' },
@@ -286,8 +287,8 @@
   ];
   // spots on and around the rug (top-left corner of each 130px toy)
   var SPOTS = [
-    [370, 770], [520, 830], [660, 755], [800, 835],
-    [940, 765], [1080, 830], [1200, 745], [450, 900]
+    [60, 880], [230, 890], [400, 860], [560, 890],
+    [720, 860], [880, 890], [1040, 860], [1200, 880]
   ];
   var boxesEl = document.getElementById('boxes');
   var toysEl = document.getElementById('toys');
@@ -302,6 +303,30 @@
   });
 
   var left = 0, idleTimer = null;
+
+  // Baby Bear stays calm so he doesn't pull her eyes off the toys: he stands
+  // still and blinks now and then. The blink is a second ChatGPT picture laid
+  // exactly on top and shown for a moment, so nothing moves or redraws.
+  var bearBlink = document.createElement('img');
+  bearBlink.className = 'char'; bearBlink.id = 'tidy-bear-blink';
+  bearBlink.src = 'art/baby-bear-blink.webp'; bearBlink.alt = '';
+  bear.parentNode.insertBefore(bearBlink, bear.nextSibling);
+  new Image().src = 'art/baby-bear-clap.webp';
+  var blinkT = null;
+  function bearLife() {
+    clearTimeout(blinkT);
+    bear.src = 'art/baby-bear-stand.webp'; bearBlink.style.visibility = 'hidden';
+    (function blink() {
+      blinkT = setTimeout(function () {
+        if (current === 'tidy' && left) {
+          bearBlink.style.visibility = 'visible';
+          setTimeout(function () { bearBlink.style.visibility = 'hidden'; }, 160);
+        }
+        blink();
+      }, 2500 + Math.random() * 2500);
+    })();
+  }
+
   function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 
   function resetIdle() {
@@ -318,9 +343,9 @@
   function startTidy() {
     toysEl.innerHTML = '';
     BOXES.forEach(function (b) { b.el.querySelector('.inside').innerHTML = ''; });
-    bear.src = 'art/baby-bear-wave.webp';
-    var spots = shuffle(SPOTS.slice());
     left = TOYS.length;
+    bearLife();
+    var spots = shuffle(SPOTS.slice());
     TOYS.forEach(function (t, i) {
       var d = document.createElement('div');
       d.className = 'toy';
@@ -337,7 +362,7 @@
     for (var i = 0; i < BOXES.length; i++) {
       var b = BOXES[i];
       // generous target: the box plus some room around it
-      if (p.x > b.x - 30 && p.x < b.x + 240 && p.y > BOX_Y - 80 && p.y < BOX_Y + 250) return b;
+      if (p.x > b.x - 7 && p.x < b.x + 257 && p.y > BOX_Y - 80 && p.y < BOX_Y + 300) return b;
     }
     return null;
   }
@@ -402,16 +427,13 @@
     var n = inside.children.length;
     var img = document.createElement('img');
     img.src = 'art/toy-' + toy.id + '.webp';
-    img.style.left = (34 + n * 66) + 'px';
+    img.style.left = (40 + n * 79) + 'px';
     img.style.top = (n ? -6 : 4) + 'px';
     inside.appendChild(img);
     b.el.classList.remove('happy'); void b.el.offsetWidth; b.el.classList.add('happy');
-    sfx.pop(); sparks(b.x + 105, BOX_Y + 60);
-    bear.src = 'art/baby-bear-cheer.webp';
-    bear.classList.remove('cheer-on'); void bear.offsetWidth; bear.classList.add('cheer-on');
-    clearTimeout(bear._t);
-    bear._t = setTimeout(function () { if (left) bear.src = 'art/baby-bear-wave.webp'; }, 1100);
+    sfx.pop(); sparks(b.x + 125, BOX_Y + 70);
     left--;
+    if (!left) { clearTimeout(blinkT); bearBlink.style.visibility = 'hidden'; bear.src = 'art/baby-bear-clap.webp'; }
     if (left === 0) {
       clearTimeout(idleTimer);
       setTimeout(function () {
@@ -455,8 +477,9 @@
     shuffle(pickPrizes()).forEach(function (p, i) {
       var c = document.createElement('div');
       c.className = 'cushion';
-      c.style.left = (520 + i * 280) + 'px';
-      c.style.top = '500px';
+      // the three cushions are centered on the page and on the rug
+      c.style.left = (288 + i * 270) + 'px';
+      c.style.top = '545px';
       // cushion first, toy second, so the toy sits ON the cushion
       c.innerHTML = '<img class="pad" src="art/prize-cushion.webp" alt="">' +
                     '<img class="gift" src="art/' + p.id + '.webp" alt="" style="height:' + p.h + 'px">';
@@ -467,7 +490,7 @@
         setTimeout(function () { toySound(p.id); }, 450);
         c.classList.add('picked');
         prizesEl.querySelectorAll('.cushion').forEach(function (o) { if (o !== c) o.classList.add('other'); });
-        sparks(520 + i * 280 + 125, 600, 10);
+        sparks(288 + i * 270 + 125, 645, 10);
         say('09-great-pick');
         save.toys.push({ id: p.id, x: null, y: null, isNew: true });
         store();
@@ -976,7 +999,7 @@
     var b = document.querySelector('#start .banner'), t = null;
     b.style.pointerEvents = 'auto';
     b.addEventListener('pointerdown', function () {
-      t = setTimeout(function () { save = { toys: [] }; store(); sfx.boing(); }, 5000);
+      t = setTimeout(function () { save = { toys: [] }; store(); played = {}; try { localStorage.removeItem(PLAYED_KEY); } catch (e) {} sfx.boing(); }, 5000);
     });
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (ev) {
       b.addEventListener(ev, function () { clearTimeout(t); });
@@ -988,10 +1011,39 @@
     try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
   }
 
+  /* ---------- the game picker inside every house ----------
+     Three big cream cushions in a row along the bottom, one game sitting on each.
+     They take turns doing a little hop so she knows they're for tapping.
+     A gold star sticks to the cushion once she has finished that game. */
+  var PLAYED_KEY = SAVE_KEY + '-played';
+  var played = {};
+  try { played = JSON.parse(localStorage.getItem(PLAYED_KEY)) || {}; } catch (e) {}
+  function markPlayed(house, game) {
+    played[house] = played[house] || {}; played[house][game] = true;
+    try { localStorage.setItem(PLAYED_KEY, JSON.stringify(played)); } catch (e) {}
+  }
+  // picks: [{id, img, h}] (h = how tall the game's picture sits on its cushion)
+  function gamePicker(layer, house, picks, onPick) {
+    var xs = [260, 683, 1106];
+    picks.forEach(function (p, i) {
+      var b = document.createElement('button');
+      b.className = 'pick-cushion';
+      b.style.left = (xs[i] - 175) + 'px';
+      b.style.animationDelay = (i * 1.2) + 's';
+      b.setAttribute('aria-label', p.id);
+      b.innerHTML = '<img class="pc-cushion" src="art/prize-cushion.webp" alt="">' +
+        '<img class="pc-game" src="art/' + p.img + '.webp" alt="" style="height:' + (p.h || 230) + 'px">' +
+        (played[house] && played[house][p.id] ? '<img class="pc-star" src="art/gold-star.webp" alt="">' : '');
+      b.addEventListener('click', function () { onPick(p.id); });
+      layer.appendChild(b);
+    });
+  }
+
   /* ---------- shared with the other game files (js/jeffrey.js) ---------- */
   window.StuffieTown = {
     W: W, H: H, go: go, enter: enter, say: say, sfx: sfx, sparks: sparks,
-    toStage: toStage, unlockAudio: unlockAudio, shuffle: shuffle
+    toStage: toStage, unlockAudio: unlockAudio, shuffle: shuffle,
+    gamePicker: gamePicker, markPlayed: markPlayed
   };
 
   go('start');
