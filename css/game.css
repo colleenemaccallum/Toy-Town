@@ -236,3 +236,22 @@ button img { width: 100%; height: 100%; object-fit: contain; }
 .fun-swing { transform-origin: 50% 4%; animation: swing 1.5s ease-in-out; }
 @keyframes swing { 0%,100% { transform: rotate(0); } 18% { transform: rotate(14deg); } 40% { transform: rotate(-10deg); } 62% { transform: rotate(6deg); } 82% { transform: rotate(-3deg); } }
 @keyframes rotate { 0%,20% { transform: rotate(0); } 60%,100% { transform: rotate(-90deg); } }
+
+/* ---------- 3d. Maddie's dress-up (js/dressup.js) ---------- */
+/* her picture is a stack of same-size ChatGPT layers: plain Maddie, shoes, top, skirt, bow */
+.dz-stack { position: absolute; }
+.dz-stack .dz-layer { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; filter: none; }
+.room-pal.dz-stack { filter: drop-shadow(0 10px 8px rgba(70,40,20,.22)); }
+#start-maddie-dressed { right: 110px; bottom: 30px; height: 590px; }
+.dz-open { pointer-events: auto; cursor: pointer; touch-action: manipulation; }
+#dz-maddie { left: 120px; bottom: 40px; height: 860px; filter: drop-shadow(0 12px 10px rgba(70,40,20,.22));
+  transform-origin: 50% 100%; animation: dzbreathe 4s ease-in-out infinite; }
+@keyframes dzbreathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.012, .992); } }
+.dz-layer.dz-pop { animation: dzpop .45s ease-out; }
+@keyframes dzpop { 0% { opacity: 0; } 100% { opacity: 1; } }
+.dz-item { position: absolute; display: flex; align-items: center; justify-content: center;
+  filter: drop-shadow(0 6px 5px rgba(70,40,20,.22)); }
+.dz-item canvas, .dz-item img { max-width: 100%; max-height: 100%; width: auto; height: auto; }
+.dz-item:active { transform: scale(.92); }
+.dz-item.worn { opacity: .4; }
+.dz-item.dz-wiggle { animation: sway2 .7s ease-in-out; }

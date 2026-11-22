@@ -35,3 +35,17 @@ shrink to fit inside cubbies, and drop to the floor if let go on the wall. Posit
 
 ## Art rule
 Every picture comes from ChatGPT. Nothing is drawn in code.
+
+## Maddie's dress-up (js/dressup.js)
+Tap Maddie on the start screen. She stands big on the left; four shelves on the right hold bows, tops, skirts and shoes.
+Tap a piece and she puts it on (soft swish and one low note). Her look is saved on the iPad (`stuffie-town-v2-outfit`)
+and shows on the start screen and in the playroom.
+
+Pictures (all ChatGPT, same canvas size, see-through background, made with Maddie's reference sheet attached):
+- `art/bg-dressup.webp` the dress-up room with four shelves on the right
+- `art/dress-base.webp` plain Maddie (hair and face, simple white tee and shorts, socks)
+- `art/dress-<piece>.webp` one per piece, drawn exactly where it sits on plain Maddie (ids in `ITEMS` in js/dressup.js)
+- optional sitting set: `art/dress-base-sit.webp` and `art/dress-<piece>-sit.webp`. Until these exist, dressed-up Maddie stands in the playroom.
+
+Nothing turns on until the room, plain Maddie and her usual four pieces exist; missing pieces are left off the shelves.
+Layer order: plain Maddie, shoes, top, skirt, bow. A piece drawn slightly off can be nudged with `nudge` in `ITEMS`.
