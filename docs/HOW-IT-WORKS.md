@@ -2,7 +2,7 @@
 
 A web app: plain HTML, CSS and JavaScript, no build step. Open `index.html` from any web host.
 On the iPad: open the link in Safari, tap Share, then "Add to Home Screen". It then opens full screen like an app
-and keeps working offline after the first visit (`sw.js`; bump its VERSION after changes).
+and keeps working offline after the first visit (`sw.js`; bump its VERSION after changes, and bump the matching `?v=` number on the css/js links in index.html so the iPad never mixes old and new files).
 
 ## The loop
 1. **Start**: Maddie and Baby Bear wave; tap the play button.
