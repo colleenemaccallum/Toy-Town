@@ -308,7 +308,7 @@
   // still and blinks now and then. The blink is a second ChatGPT picture laid
   // exactly on top and shown for a moment, so nothing moves or redraws.
   var bearBlink = document.createElement('img');
-  bearBlink.className = 'char'; bearBlink.id = 'tidy-bear-blink';
+  bearBlink.id = 'tidy-bear-blink';
   bearBlink.src = 'art/baby-bear-blink.webp'; bearBlink.alt = '';
   bear.parentNode.insertBefore(bearBlink, bear.nextSibling);
   new Image().src = 'art/baby-bear-clap.webp';
