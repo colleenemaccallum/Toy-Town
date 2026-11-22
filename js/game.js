@@ -268,12 +268,13 @@
 
   /* ===== 3. BABY BEAR TIDY-UP (round 1: colors) ===== */
   var BOXES = [
-    { color: 'red',    x: 438 },
-    { color: 'blue',   x: 654 },
-    { color: 'yellow', x: 870 },
-    { color: 'green',  x: 1086 }
+    // bigger bins, centered on the page: 4 x 250px with 14px gaps
+    { color: 'red',    x: 162 },
+    { color: 'blue',   x: 426 },
+    { color: 'yellow', x: 690 },
+    { color: 'green',  x: 954 }
   ];
-  var BOX_Y = 528;
+  var BOX_Y = 405;
   var TOYS = [
     { id: 'red-ball',    color: 'red' },
     { id: 'red-car',     color: 'red' },
@@ -337,7 +338,7 @@
     for (var i = 0; i < BOXES.length; i++) {
       var b = BOXES[i];
       // generous target: the box plus some room around it
-      if (p.x > b.x - 30 && p.x < b.x + 240 && p.y > BOX_Y - 80 && p.y < BOX_Y + 250) return b;
+      if (p.x > b.x - 7 && p.x < b.x + 257 && p.y > BOX_Y - 80 && p.y < BOX_Y + 300) return b;
     }
     return null;
   }
@@ -402,11 +403,11 @@
     var n = inside.children.length;
     var img = document.createElement('img');
     img.src = 'art/toy-' + toy.id + '.webp';
-    img.style.left = (34 + n * 66) + 'px';
+    img.style.left = (40 + n * 79) + 'px';
     img.style.top = (n ? -6 : 4) + 'px';
     inside.appendChild(img);
     b.el.classList.remove('happy'); void b.el.offsetWidth; b.el.classList.add('happy');
-    sfx.pop(); sparks(b.x + 105, BOX_Y + 60);
+    sfx.pop(); sparks(b.x + 125, BOX_Y + 70);
     bear.src = 'art/baby-bear-cheer.webp';
     bear.classList.remove('cheer-on'); void bear.offsetWidth; bear.classList.add('cheer-on');
     clearTimeout(bear._t);
@@ -455,8 +456,9 @@
     shuffle(pickPrizes()).forEach(function (p, i) {
       var c = document.createElement('div');
       c.className = 'cushion';
-      c.style.left = (520 + i * 280) + 'px';
-      c.style.top = '500px';
+      // the three cushions are centered on the page and on the rug
+      c.style.left = (288 + i * 270) + 'px';
+      c.style.top = '545px';
       // cushion first, toy second, so the toy sits ON the cushion
       c.innerHTML = '<img class="pad" src="art/prize-cushion.webp" alt="">' +
                     '<img class="gift" src="art/' + p.id + '.webp" alt="" style="height:' + p.h + 'px">';
@@ -467,7 +469,7 @@
         setTimeout(function () { toySound(p.id); }, 450);
         c.classList.add('picked');
         prizesEl.querySelectorAll('.cushion').forEach(function (o) { if (o !== c) o.classList.add('other'); });
-        sparks(520 + i * 280 + 125, 600, 10);
+        sparks(288 + i * 270 + 125, 645, 10);
         say('09-great-pick');
         save.toys.push({ id: p.id, x: null, y: null, isNew: true });
         store();
