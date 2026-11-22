@@ -999,7 +999,7 @@
     var b = document.querySelector('#start .banner'), t = null;
     b.style.pointerEvents = 'auto';
     b.addEventListener('pointerdown', function () {
-      t = setTimeout(function () { save = { toys: [] }; store(); sfx.boing(); }, 5000);
+      t = setTimeout(function () { save = { toys: [] }; store(); played = {}; try { localStorage.removeItem(PLAYED_KEY); } catch (e) {} sfx.boing(); }, 5000);
     });
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (ev) {
       b.addEventListener(ev, function () { clearTimeout(t); });
@@ -1011,10 +1011,39 @@
     try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
   }
 
+  /* ---------- the game picker inside every house ----------
+     Three big cream cushions in a row along the bottom, one game sitting on each.
+     They take turns doing a little hop so she knows they're for tapping.
+     A gold star sticks to the cushion once she has finished that game. */
+  var PLAYED_KEY = SAVE_KEY + '-played';
+  var played = {};
+  try { played = JSON.parse(localStorage.getItem(PLAYED_KEY)) || {}; } catch (e) {}
+  function markPlayed(house, game) {
+    played[house] = played[house] || {}; played[house][game] = true;
+    try { localStorage.setItem(PLAYED_KEY, JSON.stringify(played)); } catch (e) {}
+  }
+  // picks: [{id, img, h}] (h = how tall the game's picture sits on its cushion)
+  function gamePicker(layer, house, picks, onPick) {
+    var xs = [260, 683, 1106];
+    picks.forEach(function (p, i) {
+      var b = document.createElement('button');
+      b.className = 'pick-cushion';
+      b.style.left = (xs[i] - 175) + 'px';
+      b.style.animationDelay = (i * 1.2) + 's';
+      b.setAttribute('aria-label', p.id);
+      b.innerHTML = '<img class="pc-cushion" src="art/prize-cushion.webp" alt="">' +
+        '<img class="pc-game" src="art/' + p.img + '.webp" alt="" style="height:' + (p.h || 230) + 'px">' +
+        (played[house] && played[house][p.id] ? '<img class="pc-star" src="art/gold-star.webp" alt="">' : '');
+      b.addEventListener('click', function () { onPick(p.id); });
+      layer.appendChild(b);
+    });
+  }
+
   /* ---------- shared with the other game files (js/jeffrey.js) ---------- */
   window.StuffieTown = {
     W: W, H: H, go: go, enter: enter, say: say, sfx: sfx, sparks: sparks,
-    toStage: toStage, unlockAudio: unlockAudio, shuffle: shuffle
+    toStage: toStage, unlockAudio: unlockAudio, shuffle: shuffle,
+    gamePicker: gamePicker, markPlayed: markPlayed
   };
 
   go('start');

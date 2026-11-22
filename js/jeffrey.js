@@ -137,22 +137,17 @@
     later(sfx.tada, (ids.length * .65 + .6) * 1000);
   }
 
-  /* ---------- the picker: three big felt pictures on the stage ---------- */
+  /* ---------- the picker: three cushions in a row (same in every house) ---------- */
   var PICKS = [
-    { id: 'band',  img: 'band-drum',    x: 250, w: 220 },
-    { id: 'drum',  img: 'big-drum',     x: 520, w: 260 },
-    { id: 'count', img: 'number-card-3',  x: 820, w: 200 }
+    { id: 'band',  img: 'band-drum',     h: 250 },
+    { id: 'drum',  img: 'big-drum',      h: 230 },
+    { id: 'count', img: 'number-card-3', h: 210 }
   ];
   function showPicker() {
     clearLater(); layer.innerHTML = ''; game = null; busy = false;
-    pose('wave');
-    PICKS.forEach(function (p, i) {
-      var b = el('button', 'jf-pick');
-      b.style.left = p.x + 'px'; b.style.width = p.w + 'px';
-      b.style.animationDelay = (i * .35) + 's';
-      b.setAttribute('aria-label', p.id);
-      b.innerHTML = '<img src="art/' + p.img + '.webp" alt="">';
-      b.addEventListener('click', function () { ST.unlockAudio(); audio(); sfx.pop(); start(p.id); });
+    pose('wave'); jeff.classList.add('jf-back');
+    ST.gamePicker(layer, 'jeffrey', PICKS, function (id) {
+      ST.unlockAudio(); audio(); sfx.pop(); jeff.classList.remove('jf-back'); start(id);
     });
     say('16-jeffrey-pick');
   }
@@ -181,6 +176,7 @@
   }
 
   function finish() {
+    ST.markPlayed('jeffrey', game);
     pose('cheer');
     sfx.tada(); say('07-all-done');
     ST.sparks(683, 400, 12); ST.sparks(300, 600, 9); ST.sparks(1060, 600, 9);
