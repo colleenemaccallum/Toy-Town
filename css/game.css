@@ -77,15 +77,15 @@ button img { width: 100%; height: 100%; object-fit: contain; }
 
 /* ---------- 3. tidy-up ---------- */
 /* Baby Bear and his blink picture share one box and never move (moving him left trails on iPad) */
-#tidy-bear { left: 4px; top: 474px; width: 184.3px; height: 300px; z-index: 1; }
+#tidy-bear { left: 40px; top: 544px; width: 270.3px; height: 440px; z-index: 3; }
 /* the blink is only his closed eyes (ChatGPT), sized to sit exactly on his open eyes; no shadow */
-#tidy-bear-blink { position: absolute; left: 46.86px; top: 555.4px; width: 120px; height: 55.7px; z-index: 1;
+#tidy-bear-blink { position: absolute; left: 102.86px; top: 663.43px; width: 176px; height: 81.71px; z-index: 3;
   visibility: hidden; pointer-events: none; }
 #boxes .box { z-index: 2; }
-.box { position: absolute; width: 250px; height: 252px; }
+.box { position: absolute; width: 230px; height: 232px; }
 .box img { width: 100%; height: 100%; }
-.box .inside { position: absolute; left: 0; right: 0; top: 52px; height: 84px; }
-.box .inside img { position: absolute; width: 88px; height: 88px; object-fit: contain; }
+.box .inside { position: absolute; left: 0; right: 0; top: 48px; height: 78px; }
+.box .inside img { position: absolute; width: 81px; height: 81px; object-fit: contain; }
 .box.happy { animation: squish .45s ease; }
 .toy {
   position: absolute; width: 130px; height: 130px; z-index: 10;

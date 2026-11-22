@@ -268,13 +268,13 @@
 
   /* ===== 3. BABY BEAR TIDY-UP (round 1: colors) ===== */
   var BOXES = [
-    // bigger bins, centered on the page: 4 x 250px with 14px gaps
-    { color: 'red',    x: 162 },
-    { color: 'blue',   x: 426 },
-    { color: 'yellow', x: 690 },
-    { color: 'green',  x: 954 }
+    // big bins in the middle of the floor, to the right of Baby Bear's corner
+    { color: 'red',    x: 330 },
+    { color: 'blue',   x: 572 },
+    { color: 'yellow', x: 814 },
+    { color: 'green',  x: 1056 }
   ];
-  var BOX_Y = 575;   // bins in the middle of the floor, Baby Bear by the wall on the left
+  var BOX_Y = 560;   // bins in the middle of the floor, Baby Bear in the front-left corner
   var TOYS = [
     { id: 'red-ball',    color: 'red' },
     { id: 'red-car',     color: 'red' },
@@ -287,8 +287,8 @@
   ];
   // spots on and around the rug (top-left corner of each 130px toy)
   var SPOTS = [
-    [300, 870], [460, 890], [620, 860], [780, 890],
-    [940, 860], [1100, 885], [1230, 840], [1240, 600]
+    [335, 855], [463, 890], [591, 855], [719, 890],
+    [847, 855], [975, 890], [1103, 855], [1231, 890]
   ];
   var boxesEl = document.getElementById('boxes');
   var toysEl = document.getElementById('toys');
@@ -362,7 +362,7 @@
     for (var i = 0; i < BOXES.length; i++) {
       var b = BOXES[i];
       // generous target: the box plus some room around it
-      if (p.x > b.x - 7 && p.x < b.x + 257 && p.y > BOX_Y - 80 && p.y < BOX_Y + 300) return b;
+      if (p.x > b.x - 6 && p.x < b.x + 236 && p.y > BOX_Y - 80 && p.y < BOX_Y + 280) return b;
     }
     return null;
   }
@@ -427,11 +427,11 @@
     var n = inside.children.length;
     var img = document.createElement('img');
     img.src = 'art/toy-' + toy.id + '.webp';
-    img.style.left = (40 + n * 79) + 'px';
+    img.style.left = (37 + n * 73) + 'px';
     img.style.top = (n ? -6 : 4) + 'px';
     inside.appendChild(img);
     b.el.classList.remove('happy'); void b.el.offsetWidth; b.el.classList.add('happy');
-    sfx.pop(); sparks(b.x + 125, BOX_Y + 70);
+    sfx.pop(); sparks(b.x + 115, BOX_Y + 65);
     left--;
     if (!left) { clearTimeout(blinkT); bearBlink.style.visibility = 'hidden'; bear.src = 'art/baby-bear-clap.webp'; }
     if (left === 0) {
