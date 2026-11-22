@@ -48,10 +48,7 @@ button img { width: 100%; height: 100%; object-fit: contain; }
 .banner { position: absolute; left: 50%; top: 70px; width: 940px; transform: translateX(-50%);
   filter: drop-shadow(0 10px 8px rgba(0,0,0,.18)); animation: sway 4s ease-in-out infinite; }
 .banner img { width: 100%; }
-.banner h1 { position: absolute; left: 0; right: 0; top: 29%; text-align: center;
-  font: 700 104px/1 "Fredoka", sans-serif; color: #fff; letter-spacing: 1px;
-  -webkit-text-stroke: 14px #7a3a86; paint-order: stroke fill;
-  text-shadow: 0 6px 0 rgba(90,30,90,.25); }
+.banner .title-logo { position: absolute; left: 0; right: 0; margin: 0 auto; top: 18%; width: 650px; }
 #start-bear  { left: 120px;  bottom: 40px; height: 560px; }
 #start-maddie{ right: 110px; bottom: 30px; height: 590px; }
 .play { position: absolute; left: 50%; top: 560px; width: 270px; height: 270px; margin-left: -135px;
@@ -156,10 +153,10 @@ button img { width: 100%; height: 100%; object-fit: contain; }
 #prize-bear { left: 60px; bottom: 50px; height: 540px; animation: jump .9s ease-in-out infinite; }
 .cushion { position: absolute; width: 250px; height: 330px; }
 .cushion > img.pad { position: absolute; bottom: 0; width: 250px; z-index: 1; }
-/* centered with auto margins, not translateX(-50%): Safari worked that out before the
-   picture loaded on the first cushion, which pushed that toy off center */
-.cushion > img.gift { position: absolute; left: 0; right: 0; margin: 0 auto; bottom: 112px; height: 220px; max-width: 240px; z-index: 2;
-  object-fit: contain; filter: drop-shadow(0 8px 6px rgba(0,0,0,.22));
+/* the toy's box is a fixed 240px wide and sits at the cushion's middle; object-fit
+   centers the picture inside it, so nothing depends on when Safari loads the picture */
+.cushion > img.gift { position: absolute; left: 5px; width: 240px; bottom: 112px; height: 220px; z-index: 2;
+  object-position: 50% 100%; object-fit: contain; filter: drop-shadow(0 8px 6px rgba(0,0,0,.22));
   animation: floaty 2.2s ease-in-out infinite; }
 @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
 .cushion:nth-child(2) > img.gift { animation-delay: .4s; }
