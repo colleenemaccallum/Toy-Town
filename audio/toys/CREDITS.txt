@@ -1,0 +1,8 @@
+Toy sounds (all CC0 / public domain, from freesound.org; trimmed, softened and made quieter for the game)
+
+baby-doll.mp3  - "Baby Laugh.wav"         https://freesound.org/s/416702/
+play-doh.mp3   - "Splat/Squish 4"         https://freesound.org/s/515621/
+puppy.mp3      - "Puppy Bark"             https://freesound.org/s/583142/
+race-car.mp3   - "Toy Car Slow"           https://freesound.org/s/522591/
+
+All other toy sounds are made in the game code (soft Web Audio tones), so they need no credit.

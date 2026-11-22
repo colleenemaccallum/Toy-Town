@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stuffie Town</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Stuffie Town">
+<meta name="theme-color" content="#5aa9e6">
+<link rel="apple-touch-icon" href="art/icon-180.png">
+<link rel="icon" href="art/icon-180.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+<div id="stage">
+
+  <!-- 1. START -->
+  <section class="screen" id="start">
+    <img class="bg" src="art/bg-start.webp" alt="">
+    <div class="banner"><img src="art/title-banner.webp" alt="Stuffie Town"></div>
+    <img class="char bob" id="start-bear" src="art/baby-bear-wave.webp" alt="Baby Bear">
+    <img class="char bob delay" id="start-maddie" src="art/maddie-wave.webp" alt="Maddie">
+    <!-- music on/off button: waits for its ChatGPT art (art/music-on.webp, art/music-off.webp) -->
+    <button class="corner music" id="music-btn" aria-label="Music on or off" hidden><img id="music-img" src="" alt=""></button>
+    <button class="play pulse" id="play-btn" aria-label="Play"><img src="art/play-button.webp" alt=""></button>
+  </section>
+
+  <!-- 2. STREET -->
+  <section class="screen" id="street">
+    <div class="scroller" id="street-scroller">
+      <div class="street-wide">
+        <img class="street-img" src="art/street.webp" alt="">
+        <div id="houses"></div>
+      </div>
+    </div>
+    <button class="corner back" data-go="start" aria-label="Back"><img src="art/back-button.webp" alt=""></button>
+  </section>
+
+  <!-- 3. BABY BEAR TIDY-UP -->
+  <section class="screen" id="tidy">
+    <img class="bg" src="art/bg-baby-bear-room.webp" alt="">
+    <div id="boxes"></div>
+    <img class="char" id="tidy-bear" src="art/baby-bear-wave.webp" alt="Baby Bear">
+    <div id="toys"></div>
+    <button class="corner home" data-go="street" aria-label="Home"><img src="art/home-button.webp" alt=""></button>
+  </section>
+
+  <!-- 3c. JEFFREY'S MUSIC CORNER (js/jeffrey.js) -->
+  <section class="screen" id="jeffrey">
+    <img class="bg" src="art/bg-jeffrey-room.webp" alt="">
+    <img class="char jf-wave" id="jf-jeffrey" src="art/jeffrey-wave.webp" alt="Jeffrey">
+    <div id="jf-layer"></div>
+    <button class="corner home" data-go="street" aria-label="Home"><img src="art/home-button.webp" alt=""></button>
+  </section>
+
+  <!-- 4. CHEER + PICK A TOY -->
+  <section class="screen" id="prize">
+    <img class="bg soft" src="art/bg-baby-bear-room.webp" alt="">
+    <img class="char" id="prize-bear" src="art/baby-bear-cheer.webp" alt="Baby Bear cheering">
+    <div id="prizes"></div>
+  </section>
+
+  <!-- 5. PLAYROOM -->
+  <section class="screen" id="playroom">
+    <!-- the playroom is two screens wide: slide sideways to see the rest -->
+    <div class="scroller" id="room-scroller">
+      <div class="room-wide" id="room-wide">
+        <img class="room-bg" src="art/bg-playroom-wide.webp" alt="">
+        <div id="furniture"></div>
+        <div id="room-toys"></div>
+      </div>
+    </div>
+    <button class="corner home" data-go="street" aria-label="Home"><img src="art/home-button.webp" alt=""></button>
+  </section>
+
+  <div id="fx"></div>
+</div>
+
+<div id="turn">
+  <div class="turn-card">
+    <img class="turn-bear" src="art/baby-bear-wave.webp" alt="">
+    <p>Turn me sideways!</p>
+  </div>
+</div>
+
+<script src="js/game.js"></script>
+<script src="js/jeffrey.js"></script>
+</body>
+</html>
