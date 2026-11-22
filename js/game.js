@@ -304,33 +304,29 @@
 
   var left = 0, idleTimer = null;
 
-  // Baby Bear's poses (all from ChatGPT). He stands and breathes, blinks now and
-  // then, sometimes waves or points, and cheers or claps when a toy goes away.
-  var BEAR = { wave: 'baby-bear-wave', stand: 'baby-bear-stand', blink: 'baby-bear-blink',
-    point: 'baby-bear-point', clap: 'baby-bear-clap', cheer: 'baby-bear-cheer' };
-  Object.keys(BEAR).forEach(function (k) { new Image().src = 'art/' + BEAR[k] + '.webp'; });
-  var bearPose = 'stand', blinkT = null, moveT = null;
-  function setBear(p) { bearPose = p; bear.src = 'art/' + BEAR[p] + '.webp'; }
-  function bearFor(p, ms) {
-    clearTimeout(bear._t); setBear(p);
-    bear._t = setTimeout(function () { if (left) setBear('stand'); }, ms);
-  }
+  // Baby Bear stays calm so he doesn't pull her eyes off the toys: he stands
+  // still and blinks now and then. The blink is a second ChatGPT picture laid
+  // exactly on top and shown for a moment, so nothing moves or redraws.
+  var bearBlink = document.createElement('img');
+  bearBlink.className = 'char'; bearBlink.id = 'tidy-bear-blink';
+  bearBlink.src = 'art/baby-bear-blink.webp'; bearBlink.alt = '';
+  bear.parentNode.insertBefore(bearBlink, bear.nextSibling);
+  new Image().src = 'art/baby-bear-clap.webp';
+  var blinkT = null;
   function bearLife() {
-    clearTimeout(blinkT); clearInterval(moveT);
+    clearTimeout(blinkT);
+    bear.src = 'art/baby-bear-stand.webp'; bearBlink.style.visibility = 'hidden';
     (function blink() {
       blinkT = setTimeout(function () {
-        if (current === 'tidy' && bearPose === 'stand') {
-          setBear('blink');
-          setTimeout(function () { if (bearPose === 'blink') setBear('stand'); }, 170);
+        if (current === 'tidy' && left) {
+          bearBlink.style.visibility = 'visible';
+          setTimeout(function () { bearBlink.style.visibility = 'hidden'; }, 160);
         }
         blink();
-      }, 2200 + Math.random() * 2600);
+      }, 2500 + Math.random() * 2500);
     })();
-    moveT = setInterval(function () {
-      if (current !== 'tidy' || bearPose !== 'stand' || !left) return;
-      bearFor(Math.random() < .5 ? 'wave' : 'point', 1700);
-    }, 7500);
   }
+
   function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 
   function resetIdle() {
@@ -338,7 +334,7 @@
     idleTimer = setTimeout(function () {
       if (current !== 'tidy' || !left) return;
       var t = toysEl.querySelector('.toy:not(.gone)');
-      if (t) { t.classList.remove('hint'); void t.offsetWidth; t.classList.add('hint'); bearFor('point', 2000); }
+      if (t) { t.classList.remove('hint'); void t.offsetWidth; t.classList.add('hint'); }
       say('06-hint');
       resetIdle();
     }, 12000);
@@ -348,7 +344,7 @@
     toysEl.innerHTML = '';
     BOXES.forEach(function (b) { b.el.querySelector('.inside').innerHTML = ''; });
     left = TOYS.length;
-    bearFor('wave', 2200); bearLife();
+    bearLife();
     var spots = shuffle(SPOTS.slice());
     TOYS.forEach(function (t, i) {
       var d = document.createElement('div');
@@ -437,9 +433,7 @@
     b.el.classList.remove('happy'); void b.el.offsetWidth; b.el.classList.add('happy');
     sfx.pop(); sparks(b.x + 125, BOX_Y + 70);
     left--;
-    if (left) bearFor(Math.random() < .5 ? 'cheer' : 'clap', 1200);
-    else { clearTimeout(bear._t); setBear('cheer'); }
-    bear.classList.remove('cheer-on'); void bear.offsetWidth; bear.classList.add('cheer-on');
+    if (!left) { clearTimeout(blinkT); bearBlink.style.visibility = 'hidden'; bear.src = 'art/baby-bear-clap.webp'; }
     if (left === 0) {
       clearTimeout(idleTimer);
       setTimeout(function () {
