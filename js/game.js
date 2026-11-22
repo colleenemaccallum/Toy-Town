@@ -274,7 +274,7 @@
     { color: 'yellow', x: 690 },
     { color: 'green',  x: 954 }
   ];
-  var BOX_Y = 600;   // bins in the middle of the floor, Baby Bear stands behind them
+  var BOX_Y = 575;   // bins in the middle of the floor, Baby Bear by the wall on the left
   var TOYS = [
     { id: 'red-ball',    color: 'red' },
     { id: 'red-car',     color: 'red' },
@@ -287,8 +287,8 @@
   ];
   // spots on and around the rug (top-left corner of each 130px toy)
   var SPOTS = [
-    [60, 880], [230, 890], [400, 860], [560, 890],
-    [720, 860], [880, 890], [1040, 860], [1200, 880]
+    [300, 870], [460, 890], [620, 860], [780, 890],
+    [940, 860], [1100, 885], [1230, 840], [1240, 600]
   ];
   var boxesEl = document.getElementById('boxes');
   var toysEl = document.getElementById('toys');
