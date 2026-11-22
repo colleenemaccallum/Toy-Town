@@ -1,6 +1,6 @@
 // Keeps Stuffie Town working offline after the first visit.
 // Bump VERSION whenever files change so the iPad picks up the new game.
-var VERSION = 'stuffie-v18';
+var VERSION = 'stuffie-v19';
 self.addEventListener('install', function () { self.skipWaiting(); });
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (keys) {
